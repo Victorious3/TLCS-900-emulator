@@ -3,12 +3,18 @@
 
 #include "cpu.h"
 
-int main() {
+static void interrupt(void) {
+	
+}
+
+int main(void) {
 
 	printf("Resetting CPU\n");
 	cpu_reset();
 
 	printf("Starting emulation\n");
-	cpu_emulate();
+
+	
+	cpu_emulate(interrupt);
 	return 0;
 }
