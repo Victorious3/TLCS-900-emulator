@@ -7,5 +7,6 @@ The TLCS-900 **is not** binary compatible with the Z80, though the assembly lang
 This should make it "easy" to port software over, at least.
 
 ## Where to start execution from.
-If this is Z80 based I'd assume it's started from address 0.
-However, Vic noted that the docs mentioned reset vectors which are basically an addess that is read and jumped to...
+Reset vector is at 8000h (0x8000). The address stored there is used to start the execution.
+(what size is the value?)
+The stack pointer is at 100h (0x100).
