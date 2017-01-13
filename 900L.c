@@ -5,29 +5,93 @@
 #include <string.h>
 #include <assert.h>
 
-BYTE cpu_getr_b(BYTE reg) {
-	return 0;
+#include "memory.h"
+#include "register.h"
+
+// Pop an operant of the specified size (increments PC)
+static BYTE pop_b() {
+	BYTE x = cpu_getmem_b(CPU_STATE.PC);
+	CPU_STATE.PC++;
+	return x;
 }
 
-WORD cpu_getr_w(BYTE reg) {
-	return 0;
+static WORD pop_w() {
+	WORD x = cpu_getmem_w(CPU_STATE.PC);
+	CPU_STATE.PC += 2;
+	return x;
 }
 
-DWORD cpu_getr_dw(BYTE reg) {
-	return 0;
+static WORD pop_dw() {
+	WORD x = cpu_getmem_w(CPU_STATE.PC);
+	CPU_STATE.PC += 2;
+	return x;
 }
 
-void cpu_setr_b(BYTE reg, BYTE value) {
+// Memory decoding, returns a memory address to be used with cpu_getmem_<size> and cpu_setmem_<size> from memory.h
+// -m--mmmm, all other bits are ignored
+static DWORD getaddr(BYTE address_mode) {
+	if (address_mode & 0x40) {
+		// (R32)
+		if (address_mode & 0x8) {
+			return cpu_getR_dw(address_mode & 0x7);
+		}
+		// (R32+d8)
+		return cpu_getR_dw(address_mode & 0x7) + pop_b();
+	}
+	
+	switch (address_mode & 0x7) {
+	case 0:
+		// (#8)
+		return pop_b();
+	case 1:
+		// (#16)
+		return pop_w();
+	case 2:
+		// (#24)
+		return pop_w() | (pop_b() << 16);
+	case 3: {
+			int b = pop_b();
+			switch (b & 0x2) {
+			case 0:
+				// (r32)
+				return cpu_getr_dw(b & 0x3C);
+			case 1:
+				// (r32+d16)
+				return cpu_getr_dw(b & 0x3C) + pop_w();
+			default:
+				// (r32+r8)
+				if (b & 0xFC) 
+					return cpu_getr_dw(pop_b()) + cpu_getr_b(pop_b());
+				// (r32+r16)
+				return cpu_getr_dw(pop_b()) + cpu_getr_w(pop_b());
+			}
+		}
 
+	case 4: {
+			int b = pop_b();
+			int reg = b & 0x3C;
+			int disp = (b & 0x3);
+			
+			// (-r32)
+			int address = cpu_getr_dw(reg) - (disp == 0 ? 1: disp == 1 ? 2 : 4);
+			cpu_setr_dw(reg, address);
+			return address;
+		}
+
+	default: {
+			int b = pop_b();
+			int reg = b & 0x3C;
+			int disp = (b & 0x3);
+
+			// (r32+)
+			int address = cpu_getr_dw(reg);
+			cpu_setr_dw(reg, address + (disp == 0 ? 1 : disp == 1 ? 2 : 4));
+			return address;
+		}
+	}
 }
 
-void cpu_setr_w(BYTE reg, WORD value) {
-
-}
-
-void cpu_setr_dw(BYTE reg, DWORD value) {
-
-}
+// Instructions
 
 static int const INTERRUPT_PERIOD = 10;
 

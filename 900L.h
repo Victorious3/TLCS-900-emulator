@@ -56,7 +56,7 @@ struct CPU_STATE {
 	union {
 		BYTE byte[64];
 		WORD word[32];
-		DWORD qword[16];
+		DWORD dword[16];
 	} BANK;
 
 	/*   
@@ -73,7 +73,7 @@ struct CPU_STATE {
 	union {
 		BYTE byte[16];
 		WORD word[8];
-		DWORD qword[4];
+		DWORD dword[4];
 	} REG;
 
 	// Dedicated registers
@@ -116,26 +116,6 @@ struct CPU_STATE {
 
 } CPU_STATE;
 
-// Register access
-
-/// General purpose & bank registers, byte
-inline BYTE cpu_getr_b(BYTE reg);
-
-/// General purpose & bank registers, word
-inline WORD cpu_getr_w(BYTE reg);
-
-/// General purpose & bank registers, dword
-inline DWORD cpu_getr_dw(BYTE reg);
-
-/// General purpose & bank registers, byte
-inline void cpu_setr_b(BYTE reg, BYTE value);
-
-/// General purpose & bank registers, word
-inline void cpu_setr_w(BYTE reg, WORD value);
-
-/// General purpose & bank registers, dword
-inline void cpu_setr_dw(BYTE reg, DWORD value);
-
 /// Resets the CPU (see cpu_reset) and does a few assertions to ensure platform compatibility
 void cpu_init(void);
 
@@ -147,3 +127,4 @@ void cpu_emulate(void (*interrupt)(void));
 
 /// Sets the exit flag
 void cpu_exit(void);
+

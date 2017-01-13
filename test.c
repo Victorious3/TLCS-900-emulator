@@ -2,6 +2,8 @@
 #include <stdlib.h>
 
 #include "900L.h"
+#include "register.h"
+#include "memory.h"
 
 static void interrupt(void) {
 	
@@ -15,5 +17,6 @@ int main(void) {
 	printf("Starting emulation\n");
 	
 	cpu_emulate(interrupt);
+
 	return 0;
 }
