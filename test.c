@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "cpu.h"
+#include "900L.h"
 
 static void interrupt(void) {
 	
@@ -9,11 +9,10 @@ static void interrupt(void) {
 
 int main(void) {
 
-	printf("Resetting CPU\n");
-	cpu_reset();
+	printf("Initializing CPU\n");
+	cpu_init();
 
 	printf("Starting emulation\n");
-
 	
 	cpu_emulate(interrupt);
 	return 0;
