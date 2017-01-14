@@ -1,5 +1,7 @@
 #pragma once
 
+#include "900L.h"
+
 // mc_ prefix stands for Microcontroller
 
 // Address map SFRs
@@ -56,5 +58,5 @@ void mc_init(void);
 /// Returns the value of a register, preferred over cpu_getmem_b(addr) due to direct access
 inline BYTE mc_getr(enum MC_REG reg);
 
-/// Sets the value of a register, preferred over cpu_getmem_b(addr) due to direct access
+/// Sets the value of a register, preferred over cpu_setmem_b(addr) due to direct access
 inline void mc_setr(enum MC_REG reg, BYTE value);
