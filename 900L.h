@@ -6,6 +6,7 @@ typedef unsigned char  BYTE;
 typedef unsigned short WORD;
 typedef unsigned long DWORD;
 
+/// All memory
 struct CPU_STATE {
 	/*  
 		General purpose bank registers
@@ -123,7 +124,7 @@ void cpu_init(void);
 void cpu_reset(void);
 
 /// Starts the emulation
-void cpu_emulate(void (*interrupt)(void));
+void cpu_run(void (*interrupt)(void));
 
 /// Sets the exit flag
 void cpu_exit(void);

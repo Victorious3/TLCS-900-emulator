@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "900L.h"
+#include "TMP91C016.h"
 #include "register.h"
 #include "memory.h"
 
@@ -11,12 +12,11 @@ static void interrupt(void) {
 
 int main(void) {
 
-	printf("Initializing CPU\n");
-	cpu_init();
+	printf("Initializing Microcontroller\n");
+	mc_init();
 
 	printf("Starting emulation\n");
-	
-	cpu_emulate(interrupt);
+	cpu_run(interrupt);
 
 	return 0;
 }

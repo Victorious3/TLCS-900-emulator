@@ -1,10 +1,9 @@
-#include "900L.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 
+#include "900L.h"
 #include "memory.h"
 #include "register.h"
 
@@ -27,8 +26,8 @@ static WORD pop_dw() {
 	return x;
 }
 
-// Memory decoding, returns a memory address to be used with cpu_getmem_<size> and cpu_setmem_<size> from memory.h
-// -m--mmmm, all other bits are ignored
+/// Memory decoding, returns a memory address to be used with cpu_getmem_(size) and cpu_setmem_(size) from memory.h
+/// -m--mmmm, all other bits are ignored
 static DWORD getaddr(BYTE address_mode) {
 	if (address_mode & 0x40) {
 		// (R32)
@@ -119,7 +118,7 @@ void cpu_exit() {
 	exit_flag = true;
 }
 
-void cpu_emulate(void (*interrupt)(void)) {
+void cpu_run(void (*interrupt)(void)) {
 	int interrupt_counter = INTERRUPT_PERIOD;
 
 	while (true) {
@@ -128,7 +127,7 @@ void cpu_emulate(void (*interrupt)(void)) {
 			interrupt_counter = INTERRUPT_PERIOD;
 
 			// Call interrupt
-			(*interrupt)();
+			interrupt();
 
 			// Exit in case any interrupt aborts
 			if (exit_flag) break;
