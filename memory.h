@@ -1,13 +1,13 @@
 #pragma once
 
-#include "900L.h"
+#include "900L1.h"
 
 enum { CPU_MEMBUS_SIZE = 4 };
 
 /// Four memory channels, to be set by extension methods
 /// Each channel is polled in sequence until one bus accepts
 /// by returning true
-bool (*CPU_MEMBUS[CPU_MEMBUS_SIZE])(DWORD address, BYTE* mem, bool read);
+extern bool (*CPU_MEMBUS[CPU_MEMBUS_SIZE])(DWORD address, BYTE* mem, bool read);
 
 BYTE cpu_getmem_b(DWORD address);
 

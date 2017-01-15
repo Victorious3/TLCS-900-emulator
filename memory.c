@@ -1,5 +1,7 @@
 #include "memory.h"
 
+bool(*CPU_MEMBUS[CPU_MEMBUS_SIZE])(DWORD address, BYTE* mem, bool read);
+
 BYTE cpu_getmem_b(DWORD address) {
 	for (int i = 0; i < CPU_MEMBUS_SIZE; i++) {
 		bool (*bus)(DWORD, BYTE*, bool) = CPU_MEMBUS[i];

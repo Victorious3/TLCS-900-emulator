@@ -26,6 +26,10 @@ void mc_setr(enum MC_REG reg, BYTE value) {
 	MC.REG[reg] = value;
 }
 
+inline void mc_setr_range(enum MC_REG from, enum MC_REG to, BYTE value) {
+	memset(MC.REG + from, value, to - from + 1);
+}
+
 /// Internal IO
 static bool per_internal_io(DWORD address, BYTE* mem, bool read) {
 	// Internal registers
@@ -36,8 +40,6 @@ static bool per_internal_io(DWORD address, BYTE* mem, bool read) {
 	}
 	return false;
 }
-
-#include <stdio.h>
 
 /// CS/Wait controller
 static bool per_cs_wait(DWORD address, BYTE* mem, bool read) {
@@ -77,7 +79,7 @@ static bool per_cs_wait(DWORD address, BYTE* mem, bool read) {
 			DWORD end = start | mask;
 			if (address < start || address > end) continue;
 		}
-		// printf("Address: %X, Value: %x\n", B0CS + 2, bcs);
+
 		ex_mem->access(address, mem, read, ex_mem->userdata);
 		return true;
 	}
@@ -85,14 +87,48 @@ static bool per_cs_wait(DWORD address, BYTE* mem, bool read) {
 }
 
 static void reset() {
-	// CS/WAIT
-	mc_setr(MSAR0, 0xFF); mc_setr(MSAR1, 0xFF);
-	mc_setr(MSAR2, 0xFF); mc_setr(MSAR3, 0xFF);
+	// I/O ports
+	mc_setr(P2, 0xFF);
 
-	mc_setr(MAMR0, 0xFF); mc_setr(MAMR1, 0xFF);
-	mc_setr(MAMR2, 0xFF); mc_setr(MAMR3, 0xFF);
+	// I/O port control
+	mc_setr(P2FC, 0xFF); // Port 2 is used as address bus
+	mc_setr(P5UDE, 0x2C);
+	mc_setr(P6UE, 0x33);
+	mc_setr(P7UDE, 0x18);
+	mc_setr(P9UE, 0xFF);
+	mc_setr(PBUDE, 0x8);
+	mc_setr(PCCR, 0xC0);
+	mc_setr(PDUE, 0x1F);
+
+	// CS/WAIT
+	mc_setr_range(MSAR0, MAMR3, 0xFF);
+
 	// Chip 2 is enabled by default
-	mc_setr(B2CS, 0x80); 
+	mc_setr(B2CS, 0x80);
+
+	// Clock gear
+	mc_setr(SYSCR0, 0xE0);
+	mc_setr(SYSCR1, 0x4);
+	mc_setr(SYSCR2, 0x2C);
+	mc_setr(EMCCR0, 0x23);
+	// TODO: EMCCR1, EMCCR2 ?
+
+	// DFM Control
+	mc_setr(DFMCR1, 0x13);
+
+	// 8-bit timer
+	mc_setr(TA1FFCR, 0xC);
+	mc_setr(TA3FFCR, 0xC);
+
+	// DRAM control
+	mc_setr(DMEMCR, 0x80);
+
+	// Watchdog timer
+	mc_setr(WDMOD, 0x80);
+	// TODO: WDCR?
+
+	// TODO: RTC (Real time clock) Set to current time?
+
 }
 
 void mc_init() {
@@ -108,17 +144,17 @@ void mc_init() {
 
 void mc_reset() {
 	cpu_reset();
-	memset(&MC.REG, 0, sizeof (MC.REG)); // Resets all registers to 0
+	memset(MC.REG, 0, sizeof (MC.REG)); // Resets all registers to 0
 	reset();
 }
 
-static void(*ex_interrupt)(void);
+static void (*ex_interrupt)(void);
 
-static void mc_interrupt() {
+static void mc_interrupt(void) {
 	ex_interrupt();
 }
 
-void mc_run(void(*interrupt)(void)) {
+void mc_run(void (*interrupt)(void)) {
 	ex_interrupt = interrupt;
 	cpu_run(mc_interrupt);
 }

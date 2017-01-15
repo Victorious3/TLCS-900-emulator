@@ -9,6 +9,12 @@ typedef unsigned char  BYTE;
 typedef unsigned short WORD;
 typedef unsigned long DWORD;
 
+enum OP_SIZE {
+	S_BYTE = 1,
+	S_WORD = 2,
+	S_DWORD = 4
+};
+
 /// All memory
 struct CPU_STATE {
 	/*  
@@ -118,7 +124,17 @@ struct CPU_STATE {
 
 	WORD INTNEST; // Interrupt/Nesting counter
 
-} CPU_STATE;
+};
+
+extern struct CPU_STATE CPU_STATE;
+
+BYTE cpu_pop_b(void);
+WORD cpu_pop_w(void);
+DWORD cpu_pop_dw(void);
+
+BYTE cpu_peek_b(BYTE offset);
+WORD cpu_peek_w(BYTE offset);
+DWORD cpu_peek_dw(BYTE offset);
 
 /// Resets the CPU (see cpu_reset) and does a few assertions to ensure platform compatibility
 void cpu_init(void);

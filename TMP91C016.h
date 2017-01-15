@@ -1,6 +1,6 @@
 #pragma once
 
-#include "900L.h"
+#include "900L1.h"
 #include "module.h"
 
 /// The amount of memory modules that can be installed
@@ -27,7 +27,7 @@ enum MC_REG {
 	B0CS = 0xC0, B1CS, B2CS, B3CS, BEXCS = 0xC7, MSAR0, MAMR0, MSAR1, MAMR1, MSAR2, MAMR2, MSAR3, MAMR3,
 	
 	// CGEAR, DFM
-	SYSCR0 = 0xE0, SYSCR1, SYSCR3, EMCCR0, EMCCR1, EMCCR2, EMCCR3, EMCCR4, DFMCR0, DFMCR1,
+	SYSCR0 = 0xE0, SYSCR1, SYSCR2, EMCCR0, EMCCR1, EMCCR2, EMCCR3, EMCCR4, DFMCR0, DFMCR1,
 	
 	// TMRA
 	TA01RUN = 0x100, TA0REG = 0x102, TA1REG, TA01MOD, TA1FFCR, TA23RUN = 0x108, TA2REG = 0x10A, TA3REG, TA23MOD, TA3FFCR,
@@ -67,7 +67,7 @@ void mc_init(void);
 void mc_reset(void);
 
 /// Starts the emulation
-void mc_run(void(*interrupt)(void));
+void mc_run(void (*interrupt)(void));
 
 /// Returns the value of a register, preferred over cpu_getmem_b(addr) due to direct access
 inline BYTE mc_getr(enum MC_REG reg);
