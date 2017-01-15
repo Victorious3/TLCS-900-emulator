@@ -31,3 +31,12 @@ void cpu_setR_b(BYTE reg, BYTE value);
 void cpu_setR_w(BYTE reg, WORD value);
 
 void cpu_setR_dw(BYTE reg, DWORD value);
+
+
+BYTE cpu_stack_pop_b(void);
+WORD cpu_stack_pop_w(void);
+DWORD cpu_stack_pop_dw(void);
+
+void cpu_stack_push_b(BYTE value);
+void cpu_stack_push_w(WORD value);
+void cpu_stack_push_dw(DWORD value);
