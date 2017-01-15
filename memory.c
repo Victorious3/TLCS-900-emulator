@@ -2,8 +2,8 @@
 
 BYTE cpu_getmem_b(DWORD address) {
 	for (int i = 0; i < CPU_MEMBUS_SIZE; i++) {
-		bool(*bus)(DWORD, BYTE*, bool) = CPU_MEMBUS[i];
-		if (!i) continue;
+		bool (*bus)(DWORD, BYTE*, bool) = CPU_MEMBUS[i];
+		if (!bus) continue;
 		BYTE in;
 		bool succ = bus(address, &in, true);
 		if (!succ) continue;
@@ -23,11 +23,10 @@ DWORD cpu_getmem_dw(DWORD address) {
 
 void cpu_setmem_b(DWORD address, BYTE value) {
 	for (int i = 0; i < CPU_MEMBUS_SIZE; i++) {
-		bool(*bus)(DWORD, BYTE*, bool) = CPU_MEMBUS[i];
-		if (!i) continue;
+		bool (*bus)(DWORD, BYTE*, bool) = CPU_MEMBUS[i];
+		if (!bus) continue;
 		bool succ = bus(address, &value, false);
 		if (!succ) continue;
-		return value;
 	}
 }
 

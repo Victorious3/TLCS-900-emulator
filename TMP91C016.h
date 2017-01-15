@@ -1,6 +1,14 @@
 #pragma once
 
 #include "900L.h"
+#include "module.h"
+
+/// The amount of memory modules that can be installed
+enum { EX_MEMORY_SIZE = 4 };
+
+/// Set an external memory slot
+/// See module.h
+void mc_setexmem(int slot, struct EX_MEMORY* memory);
 
 // mc_ prefix stands for Microcontroller
 
@@ -54,6 +62,12 @@ enum MC_REG {
 
 /// Initializes the microcontroller, calls cpu_init
 void mc_init(void);
+
+/// Resets the microconctroller to the default state, calls cpu_reset
+void mc_reset(void);
+
+/// Starts the emulation
+void mc_run(void(*interrupt)(void));
 
 /// Returns the value of a register, preferred over cpu_getmem_b(addr) due to direct access
 inline BYTE mc_getr(enum MC_REG reg);

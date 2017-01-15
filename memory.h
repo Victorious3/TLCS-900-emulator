@@ -2,12 +2,12 @@
 
 #include "900L.h"
 
-enum { CPU_MEMBUS_SIZE = 8 };
+enum { CPU_MEMBUS_SIZE = 4 };
 
 /// Four memory channels, to be set by extension methods
 /// Each channel is polled in sequence until one bus accepts
 /// by returning true
-bool(*CPU_MEMBUS[CPU_MEMBUS_SIZE])(DWORD address, BYTE* mem, bool read);
+bool (*CPU_MEMBUS[CPU_MEMBUS_SIZE])(DWORD address, BYTE* mem, bool read);
 
 BYTE cpu_getmem_b(DWORD address);
 

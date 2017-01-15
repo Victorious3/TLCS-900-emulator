@@ -93,7 +93,6 @@ static DWORD getaddr(BYTE address_mode) {
 // Instructions
 
 static int const INTERRUPT_PERIOD = 10;
-
 static bool exit_flag = false;
 
 void cpu_init() {
