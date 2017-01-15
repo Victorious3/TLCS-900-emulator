@@ -23,7 +23,7 @@ void RETD_dd(BYTE f);
 void RCF(BYTE f);
 void SCF(BYTE f);
 void CCF(BYTE f);
-void _2CF(BYTE f);
+void ZCF(BYTE f);
 void PUSH_A(BYTE f);
 void POP_A(BYTE f);
 void EX_F_F$(BYTE f);
@@ -124,14 +124,14 @@ void SBC_R_r(BYTE reg, enum OP_SIZE size, BYTE s);
 void EX_R_r(BYTE reg, enum OP_SIZE size, BYTE s);
 
 void AND_R_r(BYTE reg, enum OP_SIZE size, BYTE s);
-void ADD_r_$3(BYTE reg, enum OP_SIZE size, BYTE s);
-void ADC_r_$3(BYTE reg, enum OP_SIZE size, BYTE s);
-void SUB_r_$3(BYTE reg, enum OP_SIZE size, BYTE s);
-void SBC_r_$3(BYTE reg, enum OP_SIZE size, BYTE s);
-void AND_r_$3(BYTE reg, enum OP_SIZE size, BYTE s);
-void XOR_r_$3(BYTE reg, enum OP_SIZE size, BYTE s);
-void OR_r_$3(BYTE reg, enum OP_SIZE size, BYTE s);
-void CP_r_$3(BYTE reg, enum OP_SIZE size, BYTE s);
+void ADD_r_$(BYTE reg, enum OP_SIZE size, BYTE s);
+void ADC_r_$(BYTE reg, enum OP_SIZE size, BYTE s);
+void SUB_r_$(BYTE reg, enum OP_SIZE size, BYTE s);
+void SBC_r_$(BYTE reg, enum OP_SIZE size, BYTE s);
+void AND_r_$(BYTE reg, enum OP_SIZE size, BYTE s);
+void XOR_r_$(BYTE reg, enum OP_SIZE size, BYTE s);
+void OR_r_$(BYTE reg, enum OP_SIZE size, BYTE s);
+void CP_r_$(BYTE reg, enum OP_SIZE size, BYTE s);
 
 void XOR_R_r(BYTE reg, enum OP_SIZE size, BYTE s);
 void CP_r_$3(BYTE reg, enum OP_SIZE size, BYTE s);
@@ -146,15 +146,15 @@ void SRA_$_r(BYTE reg, enum OP_SIZE size, BYTE s);
 void SLL_$_r(BYTE reg, enum OP_SIZE size, BYTE s);
 void SRL_$_r(BYTE reg, enum OP_SIZE size, BYTE s);
 
-void OR_R_r(BYTE reg, enum OP_SIZE size, BYTE s);
-void RLC_$_r(BYTE reg, enum OP_SIZE size, BYTE s);
-void RRC_$_r(BYTE reg, enum OP_SIZE size, BYTE s);
-void RL_$_r(BYTE reg, enum OP_SIZE size, BYTE s);
-void RR_$_r(BYTE reg, enum OP_SIZE size, BYTE s);
-void SLA_$_r(BYTE reg, enum OP_SIZE size, BYTE s);
-void SRA_$_r(BYTE reg, enum OP_SIZE size, BYTE s);
-void SLL_$_r(BYTE reg, enum OP_SIZE size, BYTE s);
-void SRL_$_r(BYTE reg, enum OP_SIZE size, BYTE s);
+void CP_R_r(BYTE reg, enum OP_SIZE size, BYTE s);
+void RLC_A_r(BYTE reg, enum OP_SIZE size, BYTE s);
+void RRC_A_r(BYTE reg, enum OP_SIZE size, BYTE s);
+void RL_A_r(BYTE reg, enum OP_SIZE size, BYTE s);
+void RR_A_r(BYTE reg, enum OP_SIZE size, BYTE s);
+void SLA_A_r(BYTE reg, enum OP_SIZE size, BYTE s);
+void SRA_A_r(BYTE reg, enum OP_SIZE size, BYTE s);
+void SLL_A_r(BYTE reg, enum OP_SIZE size, BYTE s);
+void SRL_A_r(BYTE reg, enum OP_SIZE size, BYTE s);
 
 // src
 void PUSH_mem(BYTE f, enum OP_SIZE size, DWORD addr);
