@@ -108,7 +108,7 @@ void mc_init() {
 
 void mc_reset() {
 	cpu_reset();
-	memset(&MC, 0, sizeof MC); // Resets all registers to 0
+	memset(&MC.REG, 0, sizeof (MC.REG)); // Resets all registers to 0
 	reset();
 }
 
