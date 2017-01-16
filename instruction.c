@@ -26,12 +26,15 @@ void PUSH_F(BYTE f) {
 	cpu_stack_push_b(CPU_STATE.F);
 }
 
-/*
-/// PUSH r, push register (byte) to the stack
-void PUSH_r(BYTE reg, enum OP_SIZE size, BYTE s) {
-	cpu_stack_push_b(cpu_getr_b(reg));
+/// PUSH r, push register to the stack
+/// (-XSP) <- r
+void PUSH_r(BYTE f, enum OP_SIZE size, BYTE reg) {
+	switch (size) {
+	case S_BYTE: cpu_stack_push_b(cpu_getr_b(reg)); break;
+	case S_WORD: cpu_stack_push_w(cpu_getr_w(reg)); break;
+	case S_DWORD: cpu_stakc_push_dw(cpu_getr_dw(reg)); break;
+	}
 }
-*/
 
 /// PUSH R, push current bank register (word) to the stack
 /// (-XSP) <- R
@@ -57,8 +60,14 @@ void PUSHW_nn(BYTE f) {
 	cpu_stack_push_w(cpu_pull_op_w());
 }
 
-
-
+/// PUSH(W) mem, push data at a location in memory to the stack.
+/// (-XSP) <- (mem)
+void PUSH_mem(BYTE f, enum OP_SIZE size, DWORD addr) {
+	switch (size) {
+	case S_BYTE: cpu_stack_push_b(cpu_getmem_b(addr)); break;
+	case S_WORD: cpu_stack_push_w(cpu_getmem_w(addr)); break;
+	}
+}
 
 /// POP SR, pop the status register from the stack.
 /// SR <- (XSP+)
