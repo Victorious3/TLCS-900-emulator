@@ -75,6 +75,53 @@ void POP_SR(BYTE f) {
 	CPU_STATE.SR = cpu_stack_pop_w();
 }
 
+/// POP A
+/// A <- (XSP+)
+void POP_A(BYTE f) {
+	cpu_setR_b(0x1, cpu_stack_pop_b());
+}
+
+/// POP F
+/// F <- (XSP+)
+void POP_F(BYTE f) {
+	CPU_STATE.F = cpu_stack_pop_b();
+}
+
+/// POP R
+/// R <- (XSP+)
+void POP_RR(BYTE f) {
+	cpu_setR_w(f, cpu_stack_pop_w());
+}
+
+/// POP R
+/// R <- (XSP+)
+void POP_XRR(BYTE f) {
+	cpu_setR_dw(f, cpu_stack_pop_dw());
+}
+
+/// POP r
+/// r <- (XSP+)
+void POP_r(BYTE f, enum OP_SIZE size, BYTE reg) {
+	switch (size) {
+	case S_BYTE: cpu_setr_b(reg, cpu_stack_pop_b); break;
+	case S_WORD: cpu_setr_w(reg, cpu_stack_pop_w); break;
+	case S_DWORD: cpu_setr_dw(reg, cpu_stack_pop_dw); break;
+	}
+}
+
+/// POP mem
+/// (mem) <- (XSP+)
+void POP_mem(BYTE f, DWORD addr) {
+	cpu_setmem_b(addr, cpu_stack_pop_b());
+}
+
+/// POPW mem
+/// (mem) <- (XSP+)
+void POPW_mem(BYTE f, DWORD addr) {
+	cpu_setmem_w(addr, cpu_stack_pop_w());
+}
+
+
 static void src(BYTE f) {
 	enum OP_SIZE size;
 	DWORD addr;
