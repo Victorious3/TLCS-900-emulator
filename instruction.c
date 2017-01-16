@@ -1,11 +1,19 @@
 #include "instruction.h"
+#include "memory.h"
 
 void NOP(BYTE f) {
 	return;
 }
 
 static void src(BYTE f) {
+	enum OP_SIZE size;
+	DWORD addr;
 
+	if (f >= 0xC) {
+
+	} else {
+
+	}
 }
 
 static void dst(BYTE f) {
