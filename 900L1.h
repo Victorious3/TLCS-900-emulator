@@ -89,13 +89,13 @@ struct CPU_STATE {
 	// Dedicated registers
 	union {
 		WORD SR; // Status register
-		struct SR {
+		struct {
 			unsigned SYSM : 1; // System mode
 			unsigned IFF  : 3; // Interrupt mask Flip-Flop
 			unsigned MAX  : 1; // Minimum / Maximum (Always at 1 for this CPU)
 			unsigned RFP  : 3; // Register file pointer
 
-			union F {
+			union {
 				BYTE F; // Flag register
 				struct {
 					unsigned S : 1; // Sign flag
