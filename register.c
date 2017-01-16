@@ -1,4 +1,5 @@
 #include "register.h"
+#include "memory.h"
 
 BYTE cpu_getr_b(BYTE reg) {
 	if (reg > 0x3C) {
@@ -27,6 +28,7 @@ DWORD cpu_getr_dw(BYTE reg) {
 	return CPU_STATE.BANK.dword[reg];
 }
 
+
 void cpu_setr_b(BYTE reg, BYTE value) {
 	if (reg > 0x3C) {
 		if (reg > 0xF0) CPU_STATE.REG.byte[reg & 0xF] = value;
@@ -54,7 +56,9 @@ void cpu_setr_dw(BYTE reg, DWORD value) {
 	else CPU_STATE.BANK.dword[reg] = value;
 }
 
+
 static int const reg_R[8] = {0x1, 0x0, 0x5, 0x4, 0x9, 0x8, 0xD, 0xC};
+
 
 BYTE cpu_getR_b(BYTE reg) {
 	return CPU_STATE.BANK.byte[CPU_STATE.RFP + reg_R[reg]];
@@ -68,6 +72,7 @@ DWORD cpu_getR_dw(BYTE reg) {
 	return CPU_STATE.BANK.dword[(CPU_STATE.RFP + reg_R[reg]) >> 2];
 }
 
+
 void cpu_setR_b(BYTE reg, BYTE value) {
 	CPU_STATE.BANK.byte[CPU_STATE.RFP + reg_R[reg]] = value;
 }
@@ -78,4 +83,40 @@ void cpu_setR_w(BYTE reg, WORD value) {
 
 void cpu_setR_dw(BYTE reg, DWORD value) {
 	CPU_STATE.BANK.dword[(CPU_STATE.RFP + reg_R[reg]) >> 2] = value;
+}
+
+
+BYTE cpu_stack_pop_b() {
+	return cpu_getmem_b(CPU_STATE.REG.dword[3]++);
+}
+
+WORD cpu_stack_pop_w() {
+	DWORD* xsp = CPU_STATE.REG.dword + 3;
+	WORD value = cpu_getmem_w(*xsp);
+	*xsp += S_WORD;
+	return value;
+}
+
+DWORD cpu_stack_pop_dw() {
+	DWORD* xsp = CPU_STATE.REG.dword + 3;
+	DWORD value = cpu_getmem_dw(*xsp);
+	*xsp += S_DWORD;
+	return value;
+}
+
+
+void cpu_stack_push_b(BYTE value) {
+	cpu_setmem_b(--CPU_STATE.REG.dword[3], value);
+}
+
+void cpu_stack_push_w(WORD value) {
+	DWORD* xsp = CPU_STATE.REG.dword + 3;
+	*xsp -= S_WORD;
+	cpu_setmem_w(*xsp, value);
+}
+
+void cpu_stack_push_dw(DWORD value) {
+	DWORD* xsp = CPU_STATE.REG.dword + 3;
+	*xsp -= S_DWORD;
+	cpu_setmem_dw(*xsp, value);
 }

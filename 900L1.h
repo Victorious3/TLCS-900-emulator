@@ -123,18 +123,9 @@ struct CPU_STATE {
 	BYTE  DMA_mode    [4];
 
 	WORD INTNEST; // Interrupt/Nesting counter
-
 };
 
 extern struct CPU_STATE CPU_STATE;
-
-BYTE cpu_pop_b(void);
-WORD cpu_pop_w(void);
-DWORD cpu_pop_dw(void);
-
-BYTE cpu_peek_b(BYTE offset);
-WORD cpu_peek_w(BYTE offset);
-DWORD cpu_peek_dw(BYTE offset);
 
 /// Resets the CPU (see cpu_reset) and does a few assertions to ensure platform compatibility
 void cpu_init(void);

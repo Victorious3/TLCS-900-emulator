@@ -9,38 +9,6 @@
 
 struct CPU_STATE CPU_STATE;
 
-// Pop an operant of the specified size (increments PC)
-BYTE cpu_pop_b() {
-	BYTE x = cpu_getmem_b(CPU_STATE.PC);
-	CPU_STATE.PC++;
-	return x;
-}
-
-WORD cpu_pop_w() {
-	WORD x = cpu_getmem_w(CPU_STATE.PC);
-	CPU_STATE.PC += 2;
-	return x;
-}
-
-DWORD cpu_pop_dw() {
-	DWORD x = cpu_getmem_dw(CPU_STATE.PC);
-	CPU_STATE.PC += 4;
-	return x;
-}
-
-// Peeks an operant of the specified size (doesn't increment PC)
-BYTE cpu_peek_b(BYTE offset) {
-	return cpu_getmem_b(CPU_STATE.PC + offset);
-}
-
-WORD cpu_peek_w(BYTE offset) {
-	return cpu_getmem_w(CPU_STATE.PC + offset);
-}
-
-DWORD cpu_peek_dw(BYTE offset) {
-	return cpu_getmem_dw(CPU_STATE.PC + offset);
-}
-
 /// Memory decoding, returns a memory address to be used with cpu_getmem_(size) and cpu_setmem_(size) from memory.h
 /// -m--mmmm, all other bits are ignored
 static DWORD getaddr(BYTE address_mode) {
@@ -50,39 +18,39 @@ static DWORD getaddr(BYTE address_mode) {
 			return cpu_getR_dw(address_mode & 0x7);
 		}
 		// (R32+d8)
-		return cpu_getR_dw(address_mode & 0x7) + cpu_pop_b();
+		return cpu_getR_dw(address_mode & 0x7) + cpu_pull_op_b();
 	}
 	
 	switch (address_mode & 0x7) {
 	case 0:
 		// (#8)
-		return cpu_pop_b();
+		return cpu_pull_op_b();
 	case 1:
 		// (#16)
-		return cpu_pop_w();
+		return cpu_pull_op_w();
 	case 2:
 		// (#24)
-		return cpu_pop_w() | (cpu_pop_b() << 16);
+		return cpu_pull_op_w() | (cpu_pull_op_b() << 16);
 	case 3: {
-			int b = cpu_pop_b();
+			int b = cpu_pull_op_b();
 			switch (b & 0x2) {
 			case 0:
 				// (r32)
 				return cpu_getr_dw(b & 0x3C);
 			case 1:
 				// (r32+d16)
-				return cpu_getr_dw(b & 0x3C) + cpu_pop_w();
+				return cpu_getr_dw(b & 0x3C) + cpu_pull_op_w();
 			default:
 				// (r32+r8)
 				if (b & 0xFC) 
-					return cpu_getr_dw(cpu_pop_b()) + cpu_getr_b(cpu_pop_b());
+					return cpu_getr_dw(cpu_pull_op_b()) + cpu_getr_b(cpu_pull_op_b());
 				// (r32+r16)
-				return cpu_getr_dw(cpu_pop_b()) + cpu_getr_w(cpu_pop_b());
+				return cpu_getr_dw(cpu_pull_op_b()) + cpu_getr_w(cpu_pull_op_b());
 			}
 		}
 
 	case 4: {
-			int b = cpu_pop_b();
+			int b = cpu_pull_op_b();
 			int reg = b & 0x3C;
 			int disp = (b & 0x3);
 			
@@ -93,7 +61,7 @@ static DWORD getaddr(BYTE address_mode) {
 		}
 
 	default: {
-			int b = cpu_pop_b();
+			int b = cpu_pull_op_b();
 			int reg = b & 0x3C;
 			int disp = (b & 0x3);
 
