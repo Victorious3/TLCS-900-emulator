@@ -266,6 +266,6 @@ void RET_cc(BYTE f, DWORD addr);
 
 // Operand tables
 extern void(*cpu_optable[0xFF])(BYTE f);
-extern void(*cpu_optable_reg[0xFF])(BYTE reg, enum OP_SIZE size, BYTE s);
+extern void(*cpu_optable_reg[0xFF])(BYTE f, enum OP_SIZE size, BYTE reg);
 extern void(*cpu_optable_src[0xFF])(BYTE f, enum OP_SIZE size, DWORD addr);
 extern void(*cpu_optable_dst[0xFF])(BYTE f, DWORD addr);
