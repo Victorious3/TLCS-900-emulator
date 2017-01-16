@@ -2,6 +2,7 @@
 
 #include "memory.h"
 #include "register.h"
+#include "memory.h"
 
 /// NOP - Do nothing.
 void NOP(BYTE f) {}
@@ -19,6 +20,31 @@ void PUSH_A(BYTE f) {
 	cpu_stack_push_b(cpu_getR_b(0x1));
 }
 
+/// PUSH F, push register F to the stack,
+/// (-XSP) <- F
+void PUSH_F(BYTE f) {
+	cpu_stack_push_b(CPU_STATE.F);
+}
+
+/*
+/// PUSH r, push register (byte) to the stack
+void PUSH_r(BYTE reg, enum OP_SIZE size, BYTE s) {
+	cpu_stack_push_b(cpu_getr_b(reg));
+}
+*/
+
+/// PUSH R, push current bank register (word) to the stack
+/// (-XSP) <- R
+void PUSH_RR(BYTE f) {
+	cpu_stack_push_b(cpu_getR_w(f));
+}
+
+/// PUSH R, push current bank register (dword) to the stack
+/// (-XSP) <- R
+void PUSH_XRR(BYTE f) {
+	cpu_stack_push_b(cpu_getR_dw(f));
+}
+
 /// PUSH #, push a byte to the stack.
 /// (-XSP) <- #
 void PUSH_n(BYTE f) {
@@ -30,6 +56,8 @@ void PUSH_n(BYTE f) {
 void PUSHW_nn(BYTE f) {
 	cpu_stack_push_w(cpu_pull_op_w());
 }
+
+
 
 
 /// POP SR, pop the status register from the stack.
@@ -92,4 +120,4 @@ void(*cpu_optable_reg[0xFF])(BYTE reg, enum OP_SIZE size, BYTE s) = {
 	XOR_R_r, XOR_R_r, XOR_R_r, XOR_R_r, XOR_R_r, XOR_R_r, XOR_R_r, XOR_R_r, CP_r_$3, CP_r_$3, CP_r_$3, CP_r_$3, CP_r_$3, CP_r_$3, CP_r_$3, CP_r_$3,
 	OR_R_r, OR_R_r, OR_R_r, OR_R_r, OR_R_r, OR_R_r, OR_R_r, OR_R_r, RLC_$_r, RRC_$_r, RL_$_r, RR_$_r, SLA_$_r, SRA_$_r, SLL_$_r, SRL_$_r,
 	CP_R_r, CP_R_r, CP_R_r, CP_R_r, CP_R_r, CP_R_r, CP_R_r, CP_R_r, RLC_A_r, RRC_A_r, RL_A_r, RR_A_r, SLA_A_r, SRA_A_r, SLL_A_r, SRL_A_r,
-}
+};
