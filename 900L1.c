@@ -9,9 +9,7 @@
 
 struct CPU_STATE CPU_STATE;
 
-/// Memory decoding, returns a memory address to be used with cpu_getmem_(size) and cpu_setmem_(size) from memory.h
-/// -m--mmmm, all other bits are ignored
-static DWORD getaddr(BYTE address_mode) {
+DWORD cpu_getaddr(BYTE address_mode) {
 	if (address_mode & 0x40) {
 		// (R32)
 		if (address_mode & 0x8) {

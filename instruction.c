@@ -28,24 +28,24 @@ void PUSH_F(BYTE f) {
 
 /// PUSH r, push register to the stack
 /// (-XSP) <- r
-void PUSH_r(BYTE f, enum OP_SIZE size, BYTE reg) {
+void PUSH_r(BYTE f, enum OP_SIZE size, BYTE reg, BYTE s) {
 	switch (size) {
 	case S_BYTE: cpu_stack_push_b(cpu_getr_b(reg)); break;
 	case S_WORD: cpu_stack_push_w(cpu_getr_w(reg)); break;
-	case S_DWORD: cpu_stakc_push_dw(cpu_getr_dw(reg)); break;
+	case S_DWORD: cpu_stack_push_dw(cpu_getr_dw(reg)); break;
 	}
 }
 
 /// PUSH R, push current bank register (word) to the stack
 /// (-XSP) <- R
 void PUSH_RR(BYTE f) {
-	cpu_stack_push_b(cpu_getR_w(f));
+	cpu_stack_push_w(cpu_getR_w(f));
 }
 
 /// PUSH R, push current bank register (dword) to the stack
 /// (-XSP) <- R
 void PUSH_XRR(BYTE f) {
-	cpu_stack_push_b(cpu_getR_dw(f));
+	cpu_stack_push_dw(cpu_getR_dw(f));
 }
 
 /// PUSH #, push a byte to the stack.
@@ -62,7 +62,7 @@ void PUSHW_nn(BYTE f) {
 
 /// PUSH(W) mem, push data at a location in memory to the stack.
 /// (-XSP) <- (mem)
-void PUSH_mem(BYTE f, enum OP_SIZE size, DWORD addr) {
+void PUSH_mem(BYTE f, enum OP_SIZE size, DWORD addr, BYTE s) {
 	switch (size) {
 	case S_BYTE: cpu_stack_push_b(cpu_getmem_b(addr)); break;
 	case S_WORD: cpu_stack_push_w(cpu_getmem_w(addr)); break;
@@ -101,7 +101,7 @@ void POP_XRR(BYTE f) {
 
 /// POP r
 /// r <- (XSP+)
-void POP_r(BYTE f, enum OP_SIZE size, BYTE reg) {
+void POP_r(BYTE f, enum OP_SIZE size, BYTE reg, BYTE s) {
 	switch (size) {
 	case S_BYTE: cpu_setr_b(reg, cpu_stack_pop_b); break;
 	case S_WORD: cpu_setr_w(reg, cpu_stack_pop_w); break;
@@ -121,16 +121,14 @@ void POPW_mem(BYTE f, DWORD addr) {
 	cpu_setmem_w(addr, cpu_stack_pop_w());
 }
 
-
 static void src(BYTE f) {
 	enum OP_SIZE size;
 	DWORD addr;
 
-	if (f >= 0xC) {
-		
-	} else {
-		
-	}
+	f = (f >> 3) & 0x1E;
+	size = f == 0 ? 1 : f;
+	addr = cpu_getaddr(f);
+	cpu_optable_src[];
 }
 
 static void dst(BYTE f) {
@@ -141,7 +139,7 @@ static void reg(BYTE f) {
 
 }
 
-void(*cpu_optable[0xFF])(BYTE f) = {
+OPC* cpu_optable[0xFF] = {
 	NOP, NULL, PUSH_SR, POP_SR, NULL, HALT, EI_n, RETI, LD_$n_n, PUSH_n, LDW_$n_nn, PUSHW_nn, INCF, DECF, RET, RETD_dd,
 	RCF, SCF, CCF, ZCF, PUSH_A, POP_A, EX_F_F$, LDF_n, PUSH_F, POP_F, JP_nn, JP_nnn, CALL_nn, CALL_nnn, CALR, NULL,
 	LD_R_n, LD_R_n, LD_R_n, LD_R_n, LD_R_n, LD_R_n, LD_R_n, LD_R_n, PUSH_RR, PUSH_RR, PUSH_RR, PUSH_RR, PUSH_RR, PUSH_RR, PUSH_RR, PUSH_RR,
@@ -159,7 +157,7 @@ void(*cpu_optable[0xFF])(BYTE f) = {
 	src, src, src, src, src, src, NULL, reg, reg, reg, reg, reg, reg, reg, reg, reg
 };
 
-void(*cpu_optable_reg[0xFF])(BYTE reg, enum OP_SIZE size, BYTE s) = {
+OPC_SRC* cpu_optable_reg[0xFF] = {
 	NULL, NULL, NULL, LD_r_$, PUSH_r, POP_r, CPL_r, NEG_r, MUL_rr_$, MULS_rr_$, DIVS_rr_$, LINK_r_dd, UNLNK_r, BS1F_A_r, BS1B_A_r,
 	DAA_r, NULL, EXTZ_r, EXTS_r, PAA_r, NULL, MIRR_r, NULL, NULL, MULA_r, NULL, NULL, DJNZ_r_d, NULL, NULL, NULL,
 	ANDCF_$_r, ORCF_$_r, XORCF_$_r, LDCF_$_r, STCF_$_r, NULL, NULL, NULL, ANDCF_A_r, ORCF_A_r, XORCF_A_r, LDCF_A_r, STCF_A_r, NULL, LDC_cr_r, LDC_r_cr,

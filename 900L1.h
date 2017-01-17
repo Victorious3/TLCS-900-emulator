@@ -139,3 +139,7 @@ void cpu_run(void (*interrupt)(void));
 /// Sets the exit flag
 void cpu_exit(void);
 
+/// Memory decoding, returns a memory address to be used with cpu_getmem_(size) and cpu_setmem_(size) from memory.h
+/// -m--mmmm, all other bits are ignored
+DWORD cpu_getaddr(BYTE address_mode);
+
