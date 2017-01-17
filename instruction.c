@@ -133,9 +133,9 @@ static void reg(BYTE f) {
 	
 	if ((f & 0x7) == 0x7) {
 		// Extended register
-		reg = CPU_GETr(size, cpu_pull_op_b());
+		reg = cpu_getr_b(size, cpu_pull_op_b());
 	} else {
-		reg = CPU_GETR(size, f);
+		reg = cpu_getR_b(size, f);
 	}
 
 	BYTE s = cpu_pull_op_b();
