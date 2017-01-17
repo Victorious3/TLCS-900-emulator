@@ -63,11 +63,7 @@ struct CPU_STATE {
 		ECH |      QH'    (QHL|')    QL'    <XHL|'>      H'     (H|L')   L'         |
 		----+-----------------+-----------------+-----------------+-----------------+
 	*/
-	union {
-		BYTE byte[64];
-		WORD word[32];
-		DWORD dword[16];
-	} BANK;
+	BYTE BANK[64];
 
 	/*   
 		General purpose registers & Stack Pointer
@@ -80,11 +76,7 @@ struct CPU_STATE {
 		FCH |     QSPH    (QHL| )    QSPL   <XSP| >    SPH      (S|P )   SPL        |
 		----+-----------------+-----------------+-----------------+-----------------+
 	*/
-	union {
-		BYTE byte[16];
-		WORD word[8];
-		DWORD dword[4];
-	} REG;
+	BYTE REG[16];
 
 	// Dedicated registers
 	union {

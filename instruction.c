@@ -4,13 +4,6 @@
 #include "register.h"
 #include "memory.h"
 
-/*
-#define OPC(name)     void name(BYTE f)
-#define OPC_REG(name) void name(BYTE f, enum OP_SIZE size, BYTE reg, BYTE s)
-#define OPC_SRC(name) void name(BYTE f, enum OP_SIZE size, DWORD addr, BYTE s)
-#define OPC_DST(name) void name(BYTE f, DWORD addr, BYTE s)
-*/
-
 // NOP - Do nothing.
 void NOP(BYTE f) {}
 
@@ -24,7 +17,7 @@ void PUSH_SR(BYTE f) {
 // PUSH A, push register A to the stack,
 // (-XSP) <- A
 void PUSH_A(BYTE f) {
-	cpu_stack_push_b(cpu_getR_b(0x1));
+	cpu_stack_push_b(*cpu_getR_b(0x1));
 }
 
 // PUSH F, push register F to the stack,
@@ -35,12 +28,8 @@ void PUSH_F(BYTE f) {
 
 // PUSH r, push register to the stack
 // (-XSP) <- r
-void PUSH_r(BYTE f, enum OP_SIZE size, BYTE reg, BYTE s) {
-	switch (size) {
-	case S_BYTE: cpu_stack_push_b(cpu_getr_b(reg)); break;
-	case S_WORD: cpu_stack_push_w(cpu_getr_w(reg)); break;
-	case S_DWORD: cpu_stack_push_dw(cpu_getr_dw(reg)); break;
-	}
+void PUSH_r(BYTE f, enum OP_SIZE size, BYTE* reg, BYTE s) {
+	CPU_STACK_PUSH(size, *REG(reg, size));
 }
 
 // PUSH R, push current bank register (word) to the stack
@@ -70,10 +59,7 @@ void PUSHW_nn(BYTE f) {
 // PUSH<W> mem, push data at a location in memory to the stack.
 // (-XSP) <- (mem)
 void PUSH_mem(BYTE f, enum OP_SIZE size, DWORD addr, BYTE s) {
-	switch (size) {
-	case S_BYTE: cpu_stack_push_b(cpu_getmem_b(addr)); break;
-	case S_WORD: cpu_stack_push_w(cpu_getmem_w(addr)); break;
-	}
+	CPU_STACK_PUSH(size, CPU_GETMEM(size, addr));
 }
 
 // POP SR, pop the status register from the stack.
@@ -108,12 +94,8 @@ void POP_XRR(BYTE f) {
 
 // POP r
 // r <- (XSP+)
-void POP_r(BYTE f, enum OP_SIZE size, BYTE reg, BYTE s) {
-	switch (size) {
-	case S_BYTE: cpu_setr_b(reg, cpu_stack_pop_b()); break;
-	case S_WORD: cpu_setr_w(reg, cpu_stack_pop_w()); break;
-	case S_DWORD: cpu_setr_dw(reg, cpu_stack_pop_dw()); break;
-	}
+void POP_r(BYTE f, enum OP_SIZE size, BYTE* reg, BYTE s) {
+	*REG(reg, size) = CPU_STACK_POP(size);
 }
 
 // POP mem
@@ -129,19 +111,30 @@ void POPW_mem(BYTE f, DWORD addr, BYTE s) {
 }
 
 static void src(BYTE f) {
-	f = (f >> 3) & 0x1E;
-	enum OP_SIZE size = f == 0 ? 1 : f;
+	BYTE b = (f >> 3) & 0x1E;
+	enum OP_SIZE size = b == 0 ? 1 : b;
 	DWORD addr = cpu_getaddr(f);
-	
 	BYTE s = cpu_pull_op_b();
+
 	cpu_optable_src[s](f, size, addr, s);
 }
 
 static void dst(BYTE f) {
+	DWORD addr = cpu_getaddr(f);
+	BYTE s = cpu_pull_op_b();
 
+	cpu_optable_dst[s](f, addr, s);
 }
 
 static void reg(BYTE f) {
+	BYTE b = (f >> 3) & 0x1E;
+	enum OP_SIZE size = b == 0 ? 1 : b;
+	BYTE reg = 
+	
+	if ((f & 0x7) == 0x7) {
+		// Extended register
+		
+	}
 
 }
 

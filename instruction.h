@@ -3,7 +3,7 @@
 #include "900L1.h"
 
 typedef void OPC(BYTE f);
-typedef void OPC_REG(BYTE f, enum OP_SIZE size, BYTE reg, BYTE s);
+typedef void OPC_REG(BYTE f, enum OP_SIZE size, BYTE* reg, BYTE s);
 typedef void OPC_SRC(BYTE f, enum OP_SIZE size, DWORD addr, BYTE s);
 typedef void OPC_DST(BYTE f, DWORD addr, BYTE s);
 
