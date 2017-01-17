@@ -129,13 +129,17 @@ static void dst(BYTE f) {
 static void reg(BYTE f) {
 	BYTE b = (f >> 3) & 0x1E;
 	enum OP_SIZE size = b == 0 ? 1 : b;
-	BYTE reg = 
+	BYTE* reg = NULL;
 	
 	if ((f & 0x7) == 0x7) {
 		// Extended register
-		
+		reg = CPU_GETr(size, cpu_pull_op_b());
+	} else {
+		reg = CPU_GETR(size, f);
 	}
 
+	BYTE s = cpu_pull_op_b();
+	cpu_optable_reg[s](f, size, reg, s);
 }
 
 OPC* cpu_optable[0xFF] = {
