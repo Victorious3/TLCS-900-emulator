@@ -4,30 +4,37 @@
 #include "register.h"
 #include "memory.h"
 
-/// NOP - Do nothing.
+/*
+#define OPC(name)     void name(BYTE f)
+#define OPC_REG(name) void name(BYTE f, enum OP_SIZE size, BYTE reg, BYTE s)
+#define OPC_SRC(name) void name(BYTE f, enum OP_SIZE size, DWORD addr, BYTE s)
+#define OPC_DST(name) void name(BYTE f, DWORD addr, BYTE s)
+*/
+
+// NOP - Do nothing.
 void NOP(BYTE f) {}
 
-/// PUSH SR, push the status register to the stack.
-/// Decrements xsp by 2, then places the 2 byte status register at the top of the stack.
-/// (-XSP) <- SR
+// PUSH SR, push the status register to the stack.
+// Decrements xsp by 2, then places the 2 byte status register at the top of the stack.
+// (-XSP) <- SR
 void PUSH_SR(BYTE f) {
 	cpu_stack_push_w(CPU_STATE.SR);
 }
 
-/// PUSH A, push register A to the stack,
-/// (-XSP) <- A
+// PUSH A, push register A to the stack,
+// (-XSP) <- A
 void PUSH_A(BYTE f) {
 	cpu_stack_push_b(cpu_getR_b(0x1));
 }
 
-/// PUSH F, push register F to the stack,
-/// (-XSP) <- F
+// PUSH F, push register F to the stack,
+// (-XSP) <- F
 void PUSH_F(BYTE f) {
 	cpu_stack_push_b(CPU_STATE.F);
 }
 
-/// PUSH r, push register to the stack
-/// (-XSP) <- r
+// PUSH r, push register to the stack
+// (-XSP) <- r
 void PUSH_r(BYTE f, enum OP_SIZE size, BYTE reg, BYTE s) {
 	switch (size) {
 	case S_BYTE: cpu_stack_push_b(cpu_getr_b(reg)); break;
@@ -36,32 +43,32 @@ void PUSH_r(BYTE f, enum OP_SIZE size, BYTE reg, BYTE s) {
 	}
 }
 
-/// PUSH R, push current bank register (word) to the stack
-/// (-XSP) <- R
+// PUSH R, push current bank register (word) to the stack
+// (-XSP) <- R
 void PUSH_RR(BYTE f) {
 	cpu_stack_push_w(cpu_getR_w(f));
 }
 
-/// PUSH R, push current bank register (dword) to the stack
-/// (-XSP) <- R
+// PUSH R, push current bank register (dword) to the stack
+// (-XSP) <- R
 void PUSH_XRR(BYTE f) {
 	cpu_stack_push_dw(cpu_getR_dw(f));
 }
 
-/// PUSH #, push a byte to the stack.
-/// (-XSP) <- #
+// PUSH #, push a byte to the stack.
+// (-XSP) <- #
 void PUSH_n(BYTE f) {
 	cpu_stack_push_b(cpu_pull_op_b());
 }
 
-/// PUSHW #, push a word to the stack.
-/// (-XSP) <- #
+// PUSHW #, push a word to the stack.
+// (-XSP) <- #
 void PUSHW_nn(BYTE f) {
 	cpu_stack_push_w(cpu_pull_op_w());
 }
 
-/// PUSH(W) mem, push data at a location in memory to the stack.
-/// (-XSP) <- (mem)
+// PUSH<W> mem, push data at a location in memory to the stack.
+// (-XSP) <- (mem)
 void PUSH_mem(BYTE f, enum OP_SIZE size, DWORD addr, BYTE s) {
 	switch (size) {
 	case S_BYTE: cpu_stack_push_b(cpu_getmem_b(addr)); break;
@@ -69,66 +76,65 @@ void PUSH_mem(BYTE f, enum OP_SIZE size, DWORD addr, BYTE s) {
 	}
 }
 
-/// POP SR, pop the status register from the stack.
-/// SR <- (XSP+)
+// POP SR, pop the status register from the stack.
+// SR <- (XSP+)
 void POP_SR(BYTE f) {
 	CPU_STATE.SR = cpu_stack_pop_w();
 }
 
-/// POP A
-/// A <- (XSP+)
+// POP A
+// A <- (XSP+)
 void POP_A(BYTE f) {
 	cpu_setR_b(0x1, cpu_stack_pop_b());
 }
 
-/// POP F
-/// F <- (XSP+)
+// POP F
+// F <- (XSP+)
 void POP_F(BYTE f) {
 	CPU_STATE.F = cpu_stack_pop_b();
 }
 
-/// POP R
-/// R <- (XSP+)
+// POP R
+// R <- (XSP+)
 void POP_RR(BYTE f) {
 	cpu_setR_w(f, cpu_stack_pop_w());
 }
 
-/// POP R
-/// R <- (XSP+)
+// POP R
+// R <- (XSP+)
 void POP_XRR(BYTE f) {
 	cpu_setR_dw(f, cpu_stack_pop_dw());
 }
 
-/// POP r
-/// r <- (XSP+)
+// POP r
+// r <- (XSP+)
 void POP_r(BYTE f, enum OP_SIZE size, BYTE reg, BYTE s) {
 	switch (size) {
-	case S_BYTE: cpu_setr_b(reg, cpu_stack_pop_b); break;
-	case S_WORD: cpu_setr_w(reg, cpu_stack_pop_w); break;
-	case S_DWORD: cpu_setr_dw(reg, cpu_stack_pop_dw); break;
+	case S_BYTE: cpu_setr_b(reg, cpu_stack_pop_b()); break;
+	case S_WORD: cpu_setr_w(reg, cpu_stack_pop_w()); break;
+	case S_DWORD: cpu_setr_dw(reg, cpu_stack_pop_dw()); break;
 	}
 }
 
-/// POP mem
-/// (mem) <- (XSP+)
-void POP_mem(BYTE f, DWORD addr) {
+// POP mem
+// (mem) <- (XSP+)
+void POP_mem(BYTE f, DWORD addr, BYTE s) {
 	cpu_setmem_b(addr, cpu_stack_pop_b());
 }
 
-/// POPW mem
-/// (mem) <- (XSP+)
-void POPW_mem(BYTE f, DWORD addr) {
+// POPW mem
+// (mem) <- (XSP+)
+void POPW_mem(BYTE f, DWORD addr, BYTE s) {
 	cpu_setmem_w(addr, cpu_stack_pop_w());
 }
 
 static void src(BYTE f) {
-	enum OP_SIZE size;
-	DWORD addr;
-
 	f = (f >> 3) & 0x1E;
-	size = f == 0 ? 1 : f;
-	addr = cpu_getaddr(f);
-	cpu_optable_src[];
+	enum OP_SIZE size = f == 0 ? 1 : f;
+	DWORD addr = cpu_getaddr(f);
+	
+	BYTE s = cpu_pull_op_b();
+	cpu_optable_src[s](f, size, addr, s);
 }
 
 static void dst(BYTE f) {
@@ -157,7 +163,7 @@ OPC* cpu_optable[0xFF] = {
 	src, src, src, src, src, src, NULL, reg, reg, reg, reg, reg, reg, reg, reg, reg
 };
 
-OPC_SRC* cpu_optable_reg[0xFF] = {
+OPC_REG* cpu_optable_reg[0xFF] = {
 	NULL, NULL, NULL, LD_r_$, PUSH_r, POP_r, CPL_r, NEG_r, MUL_rr_$, MULS_rr_$, DIVS_rr_$, LINK_r_dd, UNLNK_r, BS1F_A_r, BS1B_A_r,
 	DAA_r, NULL, EXTZ_r, EXTS_r, PAA_r, NULL, MIRR_r, NULL, NULL, MULA_r, NULL, NULL, DJNZ_r_d, NULL, NULL, NULL,
 	ANDCF_$_r, ORCF_$_r, XORCF_$_r, LDCF_$_r, STCF_$_r, NULL, NULL, NULL, ANDCF_A_r, ORCF_A_r, XORCF_A_r, LDCF_A_r, STCF_A_r, NULL, LDC_cr_r, LDC_r_cr,
