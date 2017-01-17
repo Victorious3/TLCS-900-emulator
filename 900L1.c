@@ -13,10 +13,10 @@ DWORD cpu_getaddr(BYTE address_mode) {
 	if (address_mode & 0x40) {
 		// (R32)
 		if (address_mode & 0x8) {
-			return cpu_getR_dw(address_mode & 0x7);
+			return *cpu_getR_dw(address_mode & 0x7);
 		}
 		// (R32+d8)
-		return cpu_getR_dw(address_mode & 0x7) + cpu_pull_op_b();
+		return *cpu_getR_dw(address_mode & 0x7) + cpu_pull_op_b();
 	}
 	
 	switch (address_mode & 0x7) {
@@ -34,16 +34,16 @@ DWORD cpu_getaddr(BYTE address_mode) {
 			switch (b & 0x2) {
 			case 0:
 				// (r32)
-				return cpu_getr_dw(b & 0x3C);
+				return *cpu_getr_dw(b & 0x3C);
 			case 1:
 				// (r32+d16)
-				return cpu_getr_dw(b & 0x3C) + cpu_pull_op_w();
+				return *cpu_getr_dw(b & 0x3C) + cpu_pull_op_w();
 			default:
 				// (r32+r8)
 				if (b & 0xFC) 
-					return cpu_getr_dw(cpu_pull_op_b()) + cpu_getr_b(cpu_pull_op_b());
+					return *cpu_getr_dw(cpu_pull_op_b()) + *cpu_getr_b(cpu_pull_op_b());
 				// (r32+r16)
-				return cpu_getr_dw(cpu_pull_op_b()) + cpu_getr_w(cpu_pull_op_b());
+				return *cpu_getr_dw(cpu_pull_op_b()) + *cpu_getr_w(cpu_pull_op_b());
 			}
 		}
 
@@ -53,8 +53,9 @@ DWORD cpu_getaddr(BYTE address_mode) {
 			int disp = (b & 0x3);
 			
 			// (-r32)
-			int address = cpu_getr_dw(reg) - (disp == 0 ? 1: disp == 1 ? 2 : 4);
-			cpu_setr_dw(reg, address);
+			DWORD* r = cpu_getr_dw(reg);
+			int address = *r - (disp == 0 ? 1: disp == 1 ? 2 : 4);
+			*r = address;
 			return address;
 		}
 
@@ -64,8 +65,9 @@ DWORD cpu_getaddr(BYTE address_mode) {
 			int disp = (b & 0x3);
 
 			// (r32+)
-			int address = cpu_getr_dw(reg);
-			cpu_setr_dw(reg, address + (disp == 0 ? 1 : disp == 1 ? 2 : 4));
+			DWORD* r = cpu_getr_dw(reg);
+			int address = *r;
+			*r = address + (disp == 0 ? 1 : disp == 1 ? 2 : 4);
 			return address;
 		}
 	}

@@ -29,19 +29,23 @@ void PUSH_F(BYTE f) {
 // PUSH r, push register to the stack
 // (-XSP) <- r
 void PUSH_r(BYTE f, enum OP_SIZE size, BYTE* reg, BYTE s) {
-	CPU_STACK_PUSH(size, *REG(reg, size));
+	switch (size) {
+	case S_BYTE: cpu_stack_push_b(*reg); break;
+	case S_WORD: cpu_stack_push_w(*(WORD*)reg); break;
+	case S_DWORD: cpu_stack_push_dw(*(DWORD*)reg); break;
+	}
 }
 
 // PUSH R, push current bank register (word) to the stack
 // (-XSP) <- R
 void PUSH_RR(BYTE f) {
-	cpu_stack_push_w(cpu_getR_w(f));
+	cpu_stack_push_w(*cpu_getR_w(f));
 }
 
 // PUSH R, push current bank register (dword) to the stack
 // (-XSP) <- R
 void PUSH_XRR(BYTE f) {
-	cpu_stack_push_dw(cpu_getR_dw(f));
+	cpu_stack_push_dw(*cpu_getR_dw(f));
 }
 
 // PUSH #, push a byte to the stack.
@@ -59,7 +63,10 @@ void PUSHW_nn(BYTE f) {
 // PUSH<W> mem, push data at a location in memory to the stack.
 // (-XSP) <- (mem)
 void PUSH_mem(BYTE f, enum OP_SIZE size, DWORD addr, BYTE s) {
-	CPU_STACK_PUSH(size, CPU_GETMEM(size, addr));
+	switch (size) {
+	case S_BYTE: cpu_stack_push_b(cpu_getmem_b(addr)); break;
+	case S_WORD: cpu_stack_push_w(cpu_getmem_w(addr)); break;
+	}
 }
 
 // POP SR, pop the status register from the stack.
@@ -71,7 +78,7 @@ void POP_SR(BYTE f) {
 // POP A
 // A <- (XSP+)
 void POP_A(BYTE f) {
-	cpu_setR_b(0x1, cpu_stack_pop_b());
+	*cpu_getR_b(0x1) = cpu_stack_pop_b();
 }
 
 // POP F
@@ -83,19 +90,23 @@ void POP_F(BYTE f) {
 // POP R
 // R <- (XSP+)
 void POP_RR(BYTE f) {
-	cpu_setR_w(f, cpu_stack_pop_w());
+	*cpu_getR_w(f) = cpu_stack_pop_w();
 }
 
 // POP R
 // R <- (XSP+)
 void POP_XRR(BYTE f) {
-	cpu_setR_dw(f, cpu_stack_pop_dw());
+	*cpu_getR_dw(f) = cpu_stack_pop_dw();
 }
 
 // POP r
 // r <- (XSP+)
 void POP_r(BYTE f, enum OP_SIZE size, BYTE* reg, BYTE s) {
-	*REG(reg, size) = CPU_STACK_POP(size);
+	switch (size) {
+	case S_BYTE: *reg = cpu_stack_pop_b(); break;
+	case S_WORD: *(WORD*)reg = cpu_stack_pop_w(); break;
+	case S_DWORD: *(DWORD*)reg = cpu_stack_pop_dw(); break;
+	}
 }
 
 // POP mem
@@ -133,9 +144,9 @@ static void reg(BYTE f) {
 	
 	if ((f & 0x7) == 0x7) {
 		// Extended register
-		reg = cpu_getr_b(size, cpu_pull_op_b());
+		reg = cpu_getr_b(cpu_pull_op_b());
 	} else {
-		reg = cpu_getR_b(size, f);
+		reg = cpu_getR_b(f);
 	}
 
 	BYTE s = cpu_pull_op_b();
