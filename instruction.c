@@ -121,6 +121,17 @@ void POPW_mem(BYTE f, DWORD addr, BYTE s) {
 	cpu_setmem_w(addr, cpu_stack_pop_w());
 }
 
+// LD<W> (#8), 8
+// dst <- src
+void LD_$n_n(BYTE f) {
+	BYTE addr = cpu_pull_op_b();
+	if (f & 0x2) { // word
+		WORD data = cpu_pull_ob_w();
+	} else { // byte
+		BYTE data = cpu_pull_op_b();
+	}
+}
+
 static void src(BYTE f) {
 	BYTE b = (f >> 3) & 0x1E;
 	enum OP_SIZE size = b == 0 ? 1 : b;

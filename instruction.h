@@ -11,8 +11,8 @@ typedef void OPC_DST(BYTE f, DWORD addr, BYTE s);
 // (NORMAL and MAX are not implemented on the 900L)
 
 OPC NOP, PUSH_SR, POP_SR, HALT, EI_n, RETI, LD_$n_n, PUSH_n, LDW_$n_nn, PUSHW_nn, INCF, DECF, 
-	RET, RETD_dd,RCF, SCF,CCF, ZCF, PUSH_A, POP_A, EX_F_F$, LDF_n,PUSH_F, POP_F,JP_nn, JP_nnn,
-	CALL_nn, CALL_nnn, CALR,LD_R_n, PUSH_RR, LD_RR_nn, PUSH_XRR, LD_XRR_nnnn, POP_RR, POP_XRR, 
+	RET, RETD_dd,RCF, SCF, CCF, ZCF, PUSH_A, POP_A, EX_F_F$, LDF_n,PUSH_F, POP_F,JP_nn, JP_nnn,
+	CALL_nn, CALL_nnn, CALR, LD_R_n, PUSH_RR, LD_RR_nn, PUSH_XRR, LD_XRR_nnnn, POP_RR, POP_XRR, 
 	JR_d, JRL_dd;
 
 // reg
