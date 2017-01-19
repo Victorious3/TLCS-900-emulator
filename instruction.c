@@ -4,8 +4,13 @@
 #include "register.h"
 #include "memory.h"
 
-// NOP - Do nothing.
+// NOP, Skips a CPU cycle.
 void NOP(BYTE f) {}
+
+// HALT
+void HALT(BYTE f) {
+
+}
 
 // PUSH SR, push the status register to the stack.
 // Decrements xsp by 2, then places the 2 byte status register at the top of the stack.

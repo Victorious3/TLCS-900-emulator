@@ -49,34 +49,27 @@ DWORD cpu_getaddr(BYTE address_mode) {
 
 	case 4: {
 			int b = cpu_pull_op_b();
-			int reg = b & 0x3C;
 			int disp = (b & 0x3);
 			
 			// (-r32)
-			DWORD* r = cpu_getr_dw(reg);
-			int address = *r - (disp == 0 ? 1: disp == 1 ? 2 : 4);
-			*r = address;
+			DWORD* reg = cpu_getr_dw(b & 0x3C);
+			int address = *reg - (disp == 0 ? 1: disp == 1 ? 2 : 4);
+			*reg = address;
 			return address;
 		}
 
 	default: {
 			int b = cpu_pull_op_b();
-			int reg = b & 0x3C;
 			int disp = (b & 0x3);
 
 			// (r32+)
-			DWORD* r = cpu_getr_dw(reg);
-			int address = *r;
-			*r = address + (disp == 0 ? 1 : disp == 1 ? 2 : 4);
+			DWORD* reg = cpu_getr_dw(b & 0x3C);
+			int address = *reg;
+			*reg = address + (disp == 0 ? 1 : disp == 1 ? 2 : 4);
 			return address;
 		}
 	}
 }
-
-// Instructions
-
-static int const INTERRUPT_PERIOD = 10;
-static bool exit_flag = false;
 
 void cpu_init() {
 
@@ -96,6 +89,9 @@ void cpu_reset() {
 	
 }
 
+static int const INTERRUPT_PERIOD = 10;
+static bool exit_flag = false;
+
 void cpu_exit() {
 	exit_flag = true;
 }
@@ -105,6 +101,7 @@ void cpu_run(void (*interrupt)(void)) {
 
 	while (true) {
 		
+
 		if (interrupt_counter <= 0) {			
 			interrupt_counter = INTERRUPT_PERIOD;
 
