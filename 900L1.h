@@ -115,6 +115,9 @@ struct CPU_STATE {
 	BYTE  DMA_mode    [4];
 
 	WORD INTNEST; // Interrupt/Nesting counter
+
+	// status flags
+	bool halt;
 };
 
 extern struct CPU_STATE CPU_STATE;

@@ -6,6 +6,7 @@
 #include "900L1.h"
 #include "memory.h"
 #include "register.h"
+#include "instruction.h"
 
 struct CPU_STATE CPU_STATE;
 
@@ -100,7 +101,11 @@ void cpu_run(void (*interrupt)(void)) {
 	int interrupt_counter = INTERRUPT_PERIOD;
 
 	while (true) {
-		
+		if (!CPU_STATE.halt) {
+			// Exectute next instruction
+			BYTE op = cpu_pull_op_b();
+			cpu_optable[op](op);
+		}
 
 		if (interrupt_counter <= 0) {			
 			interrupt_counter = INTERRUPT_PERIOD;

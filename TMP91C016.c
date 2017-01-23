@@ -26,7 +26,7 @@ void mc_setr(enum MC_REG reg, BYTE value) {
 	MC.REG[reg] = value;
 }
 
-inline void mc_setr_range(enum MC_REG from, enum MC_REG to, BYTE value) {
+static inline void mc_setr_range(enum MC_REG from, enum MC_REG to, BYTE value) {
 	memset(MC.REG + from, value, to - from + 1);
 }
 

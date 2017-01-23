@@ -4,12 +4,109 @@
 #include "register.h"
 #include "memory.h"
 
+// TODO: big endian compatibility
+static inline WORD* to_w(BYTE* b) {
+	return (WORD*)b;
+}
+
+static inline DWORD* to_dw(BYTE* b) {
+	return (DWORD*)b;
+}
+
 // NOP, Skips a CPU cycle.
 void NOP(BYTE f) {}
 
-// HALT
+// HALT, Halts execution until an interrupt is received
 void HALT(BYTE f) {
+	CPU_STATE.halt = true;
+}
 
+static inline void add_b(BYTE* dst, BYTE src) {
+	BYTE res = *dst + src;
+	
+	CPU_STATE.S = res & 0x80 != 0;
+	CPU_STATE.Z = res == 0;
+	CPU_STATE.H = ((*dst & 0xF + src & 0xF) & 0x10) != 0;
+	CPU_STATE.V = ((src ^ *dst) & 0x80) ? ((src ^ res) & 0x80) != 0 : 0;
+	CPU_STATE.N = 0;
+	CPU_STATE.C = res < *dst;
+	
+	*dst = res;
+}
+
+static inline void add_w(WORD* dst, WORD src) {
+	WORD res = *dst + src;
+
+	CPU_STATE.S = res & 0x8000 != 0;
+	CPU_STATE.Z = res == 0;
+	CPU_STATE.H = ((*dst & 0xF00 + src & 0xF00) & 0x1000) != 0; // High byte
+	CPU_STATE.V = ((src ^ *dst) & 0x8000) ? ((src ^ res) & 0x8000) != 0 : 0;
+	CPU_STATE.N = 0;
+	CPU_STATE.C = res < *dst;
+
+	*dst = res;
+}
+
+static inline void add_dw(DWORD* dst, DWORD src) {
+	DWORD res = *dst + src;
+
+	CPU_STATE.S = res & 0x80000000 != 0;
+	CPU_STATE.Z = res == 0;
+	// CPU_STATE.H undefined
+	CPU_STATE.V = ((src ^ *dst) & 0x80000000) ? ((src ^ res) & 0x80000000) != 0 : 0;
+	CPU_STATE.N = 0;
+	CPU_STATE.C = res < *dst;
+
+	*dst = res;
+}
+
+// ADD R, r, adds general purpose register r to an accumulator register R
+// R <- R + r
+void ADD_R_r(BYTE f, enum OP_SIZE size, BYTE* reg, BYTE s) {
+	switch (size) {
+	case S_BYTE: add_b(cpu_getR_b(cpu_pull_op_b), *reg); break;
+	case S_WORD: add_w(cpu_getR_w(cpu_pull_op_b), *to_w(reg)); break;
+	case S_DWORD: add_dw(cpu_getR_dw(cpu_pull_op_b), *to_dw(reg)); break;
+	}
+}
+
+// ADD r, #, adds an immediate value to register r
+// r <- r + #
+void ADD_r_$(BYTE f, enum OP_SIZE size, BYTE* reg, BYTE s) {
+	switch (size) {
+	case S_BYTE: add_b(reg, cpu_pull_op_b()); break;
+	case S_WORD: add_w(to_w(reg), cpu_pull_ob_w()); break;
+	case S_DWORD: add_dw(to_dw(reg), cpu_pull_op_dw()); break;
+	}
+}
+
+// ADD r, (mem), adds data at memory address to r
+// r <- r + (mem)
+void ADD_R_mem(BYTE f, enum OP_SIZE size, DWORD addr, BYTE s) {
+	switch (size) {
+	case S_BYTE: add_b(cpu_getr_b(s), cpu_getmem_b(addr)); break;
+	case S_WORD: add_w(cpu_getr_w(s), cpu_getmem_w(addr)); break;
+	case S_DWORD: add_dw(cpu_getr_dw(s), cpu_getmem_dw(addr)); break;
+	}
+}
+
+// ADD (mem), r, adds r to data at memory address
+// (mem) <- (mem) + r
+void ADD_mem_R(BYTE f, enum OP_SIZE size, DWORD addr, BYTE s) {
+	switch (size) {
+	case S_BYTE: { BYTE b = cpu_getmem_b(addr); add_b(&b, cpu_getr_b(s)); cpu_setmem_b(addr, b); break; }
+	case S_WORD: { WORD w = cpu_getmem_w(addr); add_w(&w, cpu_getr_w(s)); cpu_setmem_w(addr, w); break; }
+	case S_DWORD: { DWORD dw = cpu_getmem_dw(addr); add_dw(&dw, cpu_getr_dw(s)); cpu_setmem_dw(addr, dw); break; }
+	}
+}
+
+// ADD<W> (mem), #, adds an immediate value to data at memory address
+void ADD_mem_$(BYTE f, enum OP_SIZE size, DWORD addr, BYTE s) {
+	if (f & 0x10) { // word
+		WORD w = cpu_getmem_w(addr); add_w(&w, cpu_pull_op_w()); cpu_setmem_w(addr, w);
+	} else { // byte
+		BYTE b = cpu_getmem_b(addr); add_b(&b, cpu_pull_op_b()); cpu_setmem_b(addr, b);
+	}
 }
 
 // PUSH SR, push the status register to the stack.
@@ -36,8 +133,8 @@ void PUSH_F(BYTE f) {
 void PUSH_r(BYTE f, enum OP_SIZE size, BYTE* reg, BYTE s) {
 	switch (size) {
 	case S_BYTE: cpu_stack_push_b(*reg); break;
-	case S_WORD: cpu_stack_push_w(*(WORD*)reg); break;
-	case S_DWORD: cpu_stack_push_dw(*(DWORD*)reg); break;
+	case S_WORD: cpu_stack_push_w(*to_w(reg)); break;
+	case S_DWORD: cpu_stack_push_dw(*to_dw(reg)); break;
 	}
 }
 
@@ -109,8 +206,8 @@ void POP_XRR(BYTE f) {
 void POP_r(BYTE f, enum OP_SIZE size, BYTE* reg, BYTE s) {
 	switch (size) {
 	case S_BYTE: *reg = cpu_stack_pop_b(); break;
-	case S_WORD: *(WORD*)reg = cpu_stack_pop_w(); break;
-	case S_DWORD: *(DWORD*)reg = cpu_stack_pop_dw(); break;
+	case S_WORD: *to_w(reg) = cpu_stack_pop_w(); break;
+	case S_DWORD: *to_dw(reg) = cpu_stack_pop_dw(); break;
 	}
 }
 
