@@ -1,10 +1,5 @@
 #include "module.h"
 
-struct MEM_USERDATA {
-	DWORD offset;
-	BYTE* memory;
-};
-
 static void destroy_mem(struct EX_MEMORY* self) {
 	struct MEM_USERDATA* userdata = (struct MEM_USERDATA*)self->userdata;
 	

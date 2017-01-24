@@ -16,6 +16,11 @@ struct EX_MEMORY {
 	void(*destroy)(struct EX_MEMORY* self);
 };
 
+struct MEM_USERDATA {
+	DWORD offset;
+	BYTE* memory;
+};
+
 /// Creates a RAM type module
 struct EX_MEMORY* mod_ram(DWORD size, DWORD offset);
 
