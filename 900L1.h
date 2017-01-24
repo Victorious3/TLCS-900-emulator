@@ -4,10 +4,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
-typedef unsigned char  BYTE;
-typedef unsigned short WORD;
-typedef unsigned long DWORD;
+typedef uint8_t BYTE;
+typedef uint16_t WORD;
+typedef uint32_t DWORD;
 
 enum OP_SIZE {
 	S_BYTE = 1,
