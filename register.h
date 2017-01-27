@@ -1,3 +1,5 @@
+#pragma once
+
 #include "900L1.h"
 
 // Register access
@@ -20,3 +22,12 @@ DWORD cpu_stack_pop_dw(void);
 void cpu_stack_push_b(BYTE value);
 void cpu_stack_push_w(WORD value);
 void cpu_stack_push_dw(DWORD value);
+
+// TODO: big endian compatibility
+static inline WORD* to_w(BYTE* b) {
+	return (WORD*)b;
+}
+
+static inline DWORD* to_dw(BYTE* b) {
+	return (DWORD*)b;
+}
