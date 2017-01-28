@@ -6,7 +6,7 @@
 #include "900L1.h"
 #include "memory.h"
 #include "register.h"
-#include "instruction.h"
+#include "opcodes.h"
 
 struct CPU_STATE CPU_STATE;
 
@@ -14,10 +14,10 @@ DWORD cpu_getaddr(BYTE address_mode) {
 	if (address_mode & 0x40) {
 		// (R32)
 		if (address_mode & 0x8) {
-			return *cpu_getR_dw(address_mode & 0x7);
+			return getr_dw(cpu_getR(address_mode & 0x7));
 		}
 		// (R32+d8)
-		return *cpu_getR_dw(address_mode & 0x7) + cpu_pull_op_b();
+		return getr_dw(cpu_getR(address_mode & 0x7)) + cpu_pull_op_b();
 	}
 	
 	switch (address_mode & 0x7) {
@@ -35,16 +35,16 @@ DWORD cpu_getaddr(BYTE address_mode) {
 			switch (b & 0x2) {
 			case 0:
 				// (r32)
-				return *cpu_getr_dw(b & 0x3C);
+				return getr_dw(cpu_getR(b & 0x3C));
 			case 1:
 				// (r32+d16)
-				return *cpu_getr_dw(b & 0x3C) + cpu_pull_op_w();
+				return getr_dw(cpu_getR(b & 0x3C)) + cpu_pull_op_w();
 			default:
 				// (r32+r8)
 				if (b & 0xFC) 
-					return *cpu_getr_dw(cpu_pull_op_b()) + *cpu_getr_b(cpu_pull_op_b());
+					return getr_dw(cpu_getR(cpu_pull_op_b())) + getr_dw(cpu_getR(cpu_pull_op_b()));
 				// (r32+r16)
-				return *cpu_getr_dw(cpu_pull_op_b()) + *cpu_getr_w(cpu_pull_op_b());
+				return getr_dw(cpu_getR(cpu_pull_op_b())) + getr_dw(cpu_getR(cpu_pull_op_b()));
 			}
 		}
 
@@ -53,10 +53,10 @@ DWORD cpu_getaddr(BYTE address_mode) {
 			int disp = (b & 0x3);
 			
 			// (-r32)
-			DWORD* reg = cpu_getr_dw(b & 0x3C);
-			int address = *reg - (disp == 0 ? 1: disp == 1 ? 2 : 4);
-			*reg = address;
-			return address;
+			BYTE* reg = cpu_getr(b & 0x3C);
+			int addr = getr_dw(reg) - (disp == 0 ? 1: disp == 1 ? 2 : 4);
+			setr_dw(reg, addr);
+			return addr;
 		}
 
 	default: {
@@ -64,10 +64,10 @@ DWORD cpu_getaddr(BYTE address_mode) {
 			int disp = (b & 0x3);
 
 			// (r32+)
-			DWORD* reg = cpu_getr_dw(b & 0x3C);
-			int address = *reg;
-			*reg = address + (disp == 0 ? 1 : disp == 1 ? 2 : 4);
-			return address;
+			BYTE* reg = cpu_getr(b & 0x3C);
+			int addr = getr_dw(reg);
+			setr_dw(reg, addr + (disp == 0 ? 1 : disp == 1 ? 2 : 4));
+			return addr;
 		}
 	}
 }

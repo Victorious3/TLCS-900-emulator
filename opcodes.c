@@ -1,37 +1,44 @@
-#include "instruction.h"
+#include "opcodes.h"
 
+#include "900L1.h"
 #include "memory.h"
 #include "register.h"
 #include "memory.h"
 
-// NOP, Skips a CPU cycle.
-void NOP(BYTE f) {}
+#include "insn/insn.h"
+#include "insn/flags.h"
 
-// HALT, Halts execution until an interrupt is received
-void HALT(BYTE f) {
-	CPU_STATE.halt = true;
+OP0(NOP,	       {})                             // NOP, Skips a CPU cycle.
+OP0(HALT,          { CPU_STATE.halt = true; })     // HALT, Halts execution until an interrupt is received
+
+static inline void flags_add(enum OP_SIZE size, DWORD a, DWORD b, DWORD r) {
+	c_SF(size, r); ZF = r == 0; c_HF(size, a, b); c_VF(size, a, b, r); NF = 0; CF = r < a;
 }
 
-// Binary operators
-#define ARITHMETIC
-#
-# 	define OPC ADD
-#	define FUNCTION res = a + b;
-#	include "instruction/binop.h"
-#
-#	define OPC ADC
-#	define FUNCTION res = a + b + CPU_STATE.C;
-#	include "instruction/binop.h"
-#
-#undef ARITHMETIC
+OP2(ADD,     R, r, { r   += R;   flags_add(sizeof   r,   _r,   R,   r); })
+OP2(ADD,     r, $, { r   += $;   flags_add(sizeof   r,   _r,   $,   r); })
+OP2(ADD,   r, mem, { r   += mem; flags_add(sizeof   r,   _r, mem,   r); })
+OP2(ADD,   mem, R, { mem += R;   flags_add(sizeof mem, _mem,   R, mem); })
+OP2(ADD,   mem, $, { mem += $;   flags_add(sizeof mem, _mem,   $, mem); })
 
-#define LOGICAL
-#
-#	define OPC AND
-#	define FUNCTION res = a & b;
-#	include "instruction/binop.h"
-#
-#undef LOGICAL
+OP2(ADC,     R, r, { r   += R   + CF; flags_add(sizeof   _r,   _r,   R + CF,   r); })
+OP2(ADC,     r, $, { r   += $   + CF; flags_add(sizeof   _r,   _r,   $ + CF,   r); })
+OP2(ADC,   r, mem, { r   += mem + CF; flags_add(sizeof   _r,   _r, mem + CF,   r); })
+OP2(ADC,   mem, R, { mem += R   + CF; flags_add(sizeof _mem, _mem,   R + CF, mem); })
+OP2(ADC,   mem, $, { mem += $   + CF; flags_add(sizeof _mem, _mem,   $ + CF, mem); })
+
+OP2(SUB,     R, r, { r   -= R;   flags_add(sizeof   r,   _r,   ~R,   r); })
+OP2(SUB,     r, $, { r   -= $;   flags_add(sizeof   r,   _r,   ~$,   r); })
+OP2(SUB,   r, mem, { r   -= mem; flags_add(sizeof   r,   _r, ~mem,   r); })
+OP2(SUB,   mem, R, { mem -= R;   flags_add(sizeof mem, _mem,   ~R, mem); })
+OP2(SUB,   mem, $, { mem -= $;   flags_add(sizeof mem, _mem,   ~$, mem); })
+
+OP2(SBC,     R, r, { r   -= R   - CF; flags_add(sizeof   _r,   _r,   ~R + !CF,   r); })
+OP2(SBC,     r, $, { r   -= $   - CF; flags_add(sizeof   _r,   _r,   ~$ + !CF,   r); })
+OP2(SBC,   r, mem, { r   -= mem - CF; flags_add(sizeof   _r,   _r, ~mem + !CF,   r); })
+OP2(SBC,   mem, R, { mem -= R   - CF; flags_add(sizeof _mem, _mem,   ~R + !CF, mem); })
+OP2(SBC,   mem, $, { mem -= $   - CF; flags_add(sizeof _mem, _mem,   ~$ + !CF, mem); })
+
 
 // PUSH SR, push the status register to the stack.
 // Decrements xsp by 2, then places the 2 byte status register at the top of the stack.
@@ -43,7 +50,7 @@ void PUSH_SR(BYTE f) {
 // PUSH A, push register A to the stack,
 // (-XSP) <- A
 void PUSH_A(BYTE f) {
-	cpu_stack_push_b(*cpu_getR_b(0x1));
+	cpu_stack_push_b(*cpu_getR(0x1));
 }
 
 // PUSH F, push register F to the stack,
@@ -57,21 +64,21 @@ void PUSH_F(BYTE f) {
 void PUSH_r(BYTE f, enum OP_SIZE size, BYTE* reg, BYTE s) {
 	switch (size) {
 	case S_BYTE: cpu_stack_push_b(*reg); break;
-	case S_WORD: cpu_stack_push_w(*to_w(reg)); break;
-	case S_DWORD: cpu_stack_push_dw(*to_dw(reg)); break;
+	case S_WORD: cpu_stack_push_w(getr_w(reg)); break;
+	case S_DWORD: cpu_stack_push_dw(getr_dw(reg)); break;
 	}
 }
 
 // PUSH R, push current bank register (word) to the stack
 // (-XSP) <- R
 void PUSH_RR(BYTE f) {
-	cpu_stack_push_w(*cpu_getR_w(f));
+	cpu_stack_push_w(getr_w(cpu_getR(f)));
 }
 
 // PUSH R, push current bank register (dword) to the stack
 // (-XSP) <- R
 void PUSH_XRR(BYTE f) {
-	cpu_stack_push_dw(*cpu_getR_dw(f));
+	cpu_stack_push_dw(getr_dw(cpu_getR(f)));
 }
 
 // PUSH #, push a byte to the stack.
@@ -104,7 +111,7 @@ void POP_SR(BYTE f) {
 // POP A
 // A <- (XSP+)
 void POP_A(BYTE f) {
-	*cpu_getR_b(0x1) = cpu_stack_pop_b();
+	*cpu_getR(0x1) = cpu_stack_pop_b();
 }
 
 // POP F
@@ -116,13 +123,13 @@ void POP_F(BYTE f) {
 // POP R
 // R <- (XSP+)
 void POP_RR(BYTE f) {
-	*cpu_getR_w(f) = cpu_stack_pop_w();
+	setr_w(cpu_getR(f), cpu_stack_pop_w());
 }
 
 // POP R
 // R <- (XSP+)
 void POP_XRR(BYTE f) {
-	*cpu_getR_dw(f) = cpu_stack_pop_dw();
+	setr_dw(cpu_getR(f), cpu_stack_pop_dw());
 }
 
 // POP r
@@ -130,8 +137,8 @@ void POP_XRR(BYTE f) {
 void POP_r(BYTE f, enum OP_SIZE size, BYTE* reg, BYTE s) {
 	switch (size) {
 	case S_BYTE: *reg = cpu_stack_pop_b(); break;
-	case S_WORD: *to_w(reg) = cpu_stack_pop_w(); break;
-	case S_DWORD: *to_dw(reg) = cpu_stack_pop_dw(); break;
+	case S_WORD: setr_w(reg, cpu_stack_pop_w()); break;
+	case S_DWORD: setr_dw(reg, cpu_stack_pop_dw()); break;
 	}
 }
 
@@ -181,9 +188,9 @@ static void reg(BYTE f) {
 	
 	if ((f & 0x7) == 0x7) {
 		// Extended register
-		reg = cpu_getr_b(cpu_pull_op_b());
+		reg = cpu_getr(cpu_pull_op_b());
 	} else {
-		reg = cpu_getR_b(f);
+		reg = cpu_getR(f);
 	}
 
 	BYTE s = cpu_pull_op_b();

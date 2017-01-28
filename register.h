@@ -4,16 +4,11 @@
 
 // Register access
 
-/// General purpose & bank registers, byte
-BYTE* cpu_getr_b(BYTE reg);
-/// General purpose & bank registers, word
-WORD* cpu_getr_w(BYTE reg);
-/// General purpose & bank registers, dword
-DWORD* cpu_getr_dw(BYTE reg);
+/// General purpose & bank registers
+BYTE* cpu_getr(BYTE reg);
 
-BYTE* cpu_getR_b(BYTE reg);
-WORD* cpu_getR_w(BYTE reg);
-DWORD* cpu_getR_dw(BYTE reg);
+/// General purpose
+BYTE* cpu_getR(BYTE reg);
 
 BYTE cpu_stack_pop_b(void);
 WORD cpu_stack_pop_w(void);
@@ -24,10 +19,26 @@ void cpu_stack_push_w(WORD value);
 void cpu_stack_push_dw(DWORD value);
 
 // TODO: big endian compatibility
-static inline WORD* to_w(BYTE* b) {
-	return (WORD*)b;
+static inline BYTE getr_b(BYTE* r) {
+	return *r;
 }
 
-static inline DWORD* to_dw(BYTE* b) {
-	return (DWORD*)b;
+static inline void setr_b(BYTE* r, BYTE b) {
+	*r = b;
+}
+
+static inline WORD getr_w(BYTE* r) {
+	return *(WORD*)r;
+}
+
+static inline void setr_w(BYTE* r, WORD w) {
+	*((WORD*)r) = w;
+}
+
+static inline DWORD getr_dw(BYTE* r) {
+	return *(DWORD*)r;
+}
+
+static inline void setr_dw(BYTE* r, DWORD d) {
+	*((DWORD*)r) = d;
 }

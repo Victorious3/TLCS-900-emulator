@@ -1,7 +1,7 @@
 #include "register.h"
 #include "memory.h"
 
-BYTE* cpu_getr_b(BYTE reg) {
+BYTE* cpu_getr(BYTE reg) {
 	if (reg > 0x3C) {
 		if (reg > 0xF0) return CPU_STATE.REG + (reg & 0xF);
 		if (reg > 0xE0) return CPU_STATE.BANK + (((CPU_STATE.RFP + 7) % 8) + (reg & 0xF));
@@ -10,26 +10,10 @@ BYTE* cpu_getr_b(BYTE reg) {
 	return CPU_STATE.BANK + reg;
 }
 
-WORD* cpu_getr_w(BYTE reg) {
-	return (WORD*)cpu_getr_b(reg);
-}
-
-DWORD* cpu_getr_dw(BYTE reg) {
-	return (DWORD*)cpu_getr_b(reg);
-}
-
 static int const reg_R[8] = {0x1, 0x0, 0x5, 0x4, 0x9, 0x8, 0xD, 0xC};
 
-BYTE* cpu_getR_b(BYTE reg) {
+BYTE* cpu_getR(BYTE reg) {
 	return CPU_STATE.BANK + (CPU_STATE.RFP + reg_R[reg]);
-}
-
-WORD* cpu_getR_w(BYTE reg) {
-	return (WORD*)cpu_getR_b(reg);
-}
-
-DWORD* cpu_getR_dw(BYTE reg) {
-	return (DWORD*)cpu_getR_b(reg);
 }
 
 BYTE cpu_stack_pop_b() {
