@@ -4,166 +4,13 @@
 #include "memory.h"
 #include "register.h"
 #include "memory.h"
-
-#include "insn/insn.h"
 #include "insn/flags.h"
 
-OP0(NOP,	       {})                             // NOP, Skips a CPU cycle.
-OP0(HALT,          { CPU_STATE.halt = true; })     // HALT, Halts execution until an interrupt is received
 
-static inline void flags_add(enum OP_SIZE size, DWORD a, DWORD b, DWORD r) {
+/*static inline void flags_add(enum OP_SIZE size, DWORD a, DWORD b, DWORD r) {
 	c_SF(size, r); ZF = r == 0; c_HF(size, a, b); c_VF(size, a, b, r); NF = 0; CF = r < a;
-}
+}*/
 
-OP2(ADD,     R, r, { r   += R;   flags_add(sizeof   r,   _r,   R,   r); })
-OP2(ADD,     r, $, { r   += $;   flags_add(sizeof   r,   _r,   $,   r); })
-OP2(ADD,   r, mem, { r   += mem; flags_add(sizeof   r,   _r, mem,   r); })
-OP2(ADD,   mem, R, { mem += R;   flags_add(sizeof mem, _mem,   R, mem); })
-OP2(ADD,   mem, $, { mem += $;   flags_add(sizeof mem, _mem,   $, mem); })
-
-OP2(ADC,     R, r, { r   += R   + CF; flags_add(sizeof   _r,   _r,   R + CF,   r); })
-OP2(ADC,     r, $, { r   += $   + CF; flags_add(sizeof   _r,   _r,   $ + CF,   r); })
-OP2(ADC,   r, mem, { r   += mem + CF; flags_add(sizeof   _r,   _r, mem + CF,   r); })
-OP2(ADC,   mem, R, { mem += R   + CF; flags_add(sizeof _mem, _mem,   R + CF, mem); })
-OP2(ADC,   mem, $, { mem += $   + CF; flags_add(sizeof _mem, _mem,   $ + CF, mem); })
-
-OP2(SUB,     R, r, { r   -= R;   flags_add(sizeof   r,   _r,   ~R,   r); })
-OP2(SUB,     r, $, { r   -= $;   flags_add(sizeof   r,   _r,   ~$,   r); })
-OP2(SUB,   r, mem, { r   -= mem; flags_add(sizeof   r,   _r, ~mem,   r); })
-OP2(SUB,   mem, R, { mem -= R;   flags_add(sizeof mem, _mem,   ~R, mem); })
-OP2(SUB,   mem, $, { mem -= $;   flags_add(sizeof mem, _mem,   ~$, mem); })
-
-OP2(SBC,     R, r, { r   -= R   - CF; flags_add(sizeof   _r,   _r,   ~R + !CF,   r); })
-OP2(SBC,     r, $, { r   -= $   - CF; flags_add(sizeof   _r,   _r,   ~$ + !CF,   r); })
-OP2(SBC,   r, mem, { r   -= mem - CF; flags_add(sizeof   _r,   _r, ~mem + !CF,   r); })
-OP2(SBC,   mem, R, { mem -= R   - CF; flags_add(sizeof _mem, _mem,   ~R + !CF, mem); })
-OP2(SBC,   mem, $, { mem -= $   - CF; flags_add(sizeof _mem, _mem,   ~$ + !CF, mem); })
-
-
-// PUSH SR, push the status register to the stack.
-// Decrements xsp by 2, then places the 2 byte status register at the top of the stack.
-// (-XSP) <- SR
-void PUSH_SR(BYTE f) {
-	cpu_stack_push_w(CPU_STATE.SR);
-}
-
-// PUSH A, push register A to the stack,
-// (-XSP) <- A
-void PUSH_A(BYTE f) {
-	cpu_stack_push_b(*cpu_getR(0x1));
-}
-
-// PUSH F, push register F to the stack,
-// (-XSP) <- F
-void PUSH_F(BYTE f) {
-	cpu_stack_push_b(CPU_STATE.F);
-}
-
-// PUSH r, push register to the stack
-// (-XSP) <- r
-void PUSH_r(BYTE f, enum OP_SIZE size, BYTE* reg, BYTE s) {
-	switch (size) {
-	case S_BYTE: cpu_stack_push_b(*reg); break;
-	case S_WORD: cpu_stack_push_w(getr_w(reg)); break;
-	case S_DWORD: cpu_stack_push_dw(getr_dw(reg)); break;
-	}
-}
-
-// PUSH R, push current bank register (word) to the stack
-// (-XSP) <- R
-void PUSH_RR(BYTE f) {
-	cpu_stack_push_w(getr_w(cpu_getR(f)));
-}
-
-// PUSH R, push current bank register (dword) to the stack
-// (-XSP) <- R
-void PUSH_XRR(BYTE f) {
-	cpu_stack_push_dw(getr_dw(cpu_getR(f)));
-}
-
-// PUSH #, push a byte to the stack.
-// (-XSP) <- #
-void PUSH_n(BYTE f) {
-	cpu_stack_push_b(cpu_pull_op_b());
-}
-
-// PUSHW #, push a word to the stack.
-// (-XSP) <- #
-void PUSHW_nn(BYTE f) {
-	cpu_stack_push_w(cpu_pull_op_w());
-}
-
-// PUSH<W> mem, push data at a location in memory to the stack.
-// (-XSP) <- (mem)
-void PUSH_mem(BYTE f, enum OP_SIZE size, DWORD addr, BYTE s) {
-	switch (size) {
-	case S_BYTE: cpu_stack_push_b(cpu_getmem_b(addr)); break;
-	case S_WORD: cpu_stack_push_w(cpu_getmem_w(addr)); break;
-	}
-}
-
-// POP SR, pop the status register from the stack.
-// SR <- (XSP+)
-void POP_SR(BYTE f) {
-	CPU_STATE.SR = cpu_stack_pop_w();
-}
-
-// POP A
-// A <- (XSP+)
-void POP_A(BYTE f) {
-	*cpu_getR(0x1) = cpu_stack_pop_b();
-}
-
-// POP F
-// F <- (XSP+)
-void POP_F(BYTE f) {
-	CPU_STATE.F = cpu_stack_pop_b();
-}
-
-// POP R
-// R <- (XSP+)
-void POP_RR(BYTE f) {
-	setr_w(cpu_getR(f), cpu_stack_pop_w());
-}
-
-// POP R
-// R <- (XSP+)
-void POP_XRR(BYTE f) {
-	setr_dw(cpu_getR(f), cpu_stack_pop_dw());
-}
-
-// POP r
-// r <- (XSP+)
-void POP_r(BYTE f, enum OP_SIZE size, BYTE* reg, BYTE s) {
-	switch (size) {
-	case S_BYTE: *reg = cpu_stack_pop_b(); break;
-	case S_WORD: setr_w(reg, cpu_stack_pop_w()); break;
-	case S_DWORD: setr_dw(reg, cpu_stack_pop_dw()); break;
-	}
-}
-
-// POP mem
-// (mem) <- (XSP+)
-void POP_mem(BYTE f, DWORD addr, BYTE s) {
-	cpu_setmem_b(addr, cpu_stack_pop_b());
-}
-
-// POPW mem
-// (mem) <- (XSP+)
-void POPW_mem(BYTE f, DWORD addr, BYTE s) {
-	cpu_setmem_w(addr, cpu_stack_pop_w());
-}
-
-// LD<W> (#8), 8
-// dst <- src
-void LD_$n_n(BYTE f) {
-	BYTE addr = cpu_pull_op_b();
-	if (f & 0x2) { // word
-		WORD data = cpu_pull_op_w();
-	} else { // byte
-		BYTE data = cpu_pull_op_b();
-	}
-}
 
 static void src(BYTE f) {
 	BYTE b = (f >> 3) & 0x1E;
@@ -215,7 +62,7 @@ OPC* cpu_optable[0xFF] = {
 	src, src, src, src, src, src, NULL, reg, reg, reg, reg, reg, reg, reg, reg, reg
 };
 
-OPC_REG* cpu_optable_reg[0xFF] = {
+OPC* cpu_optable_reg[0xFF] = {
 	NULL, NULL, NULL, LD_r_$, PUSH_r, POP_r, CPL_r, NEG_r, MUL_rr_$, MULS_rr_$, DIVS_rr_$, LINK_r_dd, UNLNK_r, BS1F_A_r, BS1B_A_r,
 	DAA_r, NULL, EXTZ_r, EXTS_r, PAA_r, NULL, MIRR_r, NULL, NULL, MULA_r, NULL, NULL, DJNZ_r_d, NULL, NULL, NULL,
 	ANDCF_$_r, ORCF_$_r, XORCF_$_r, LDCF_$_r, STCF_$_r, NULL, NULL, NULL, ANDCF_A_r, ORCF_A_r, XORCF_A_r, LDCF_A_r, STCF_A_r, NULL, LDC_cr_r, LDC_r_cr,

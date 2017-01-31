@@ -2,10 +2,7 @@
 
 #include "900L1.h"
 
-typedef void OPC(BYTE f);
-typedef void OPC_REG(BYTE f, enum OP_SIZE size, BYTE* reg, BYTE s);
-typedef void OPC_SRC(BYTE f, enum OP_SIZE size, DWORD addr, BYTE s);
-typedef void OPC_DST(BYTE f, DWORD addr, BYTE s);
+typedef void OPC(void);
 
 // 1 byte opcodes
 // (NORMAL and MAX are not implemented on the 900L)
@@ -16,7 +13,7 @@ OPC NOP, PUSH_SR, POP_SR, HALT, EI_n, RETI, LD_$n_n, PUSH_n, LDW_$n_nn, PUSHW_nn
 	JR_d, JRL_dd;
 
 // reg
-OPC_REG LD_r_$, PUSH_r, POP_r, CPL_r, NEG_r, MUL_rr_$, MULS_rr_$, DIV_rr_$, DIVS_rr_$, LINK_r_dd,
+OPC LD_r_$, PUSH_r, POP_r, CPL_r, NEG_r, MUL_rr_$, MULS_rr_$, DIV_rr_$, DIVS_rr_$, LINK_r_dd,
 	UNLNK_r, BS1F_A_r, BS1B_A_r, DAA_r, EXTZ_r, EXTS_r, PAA_r, MIRR_r, MULA_r, DJNZ_r_d, ANDCF_$_r,
 	ORCF_$_r, XORCF_$_r, LDCF_$_r, STCF_$_r, ANDCF_A_r, ORCF_A_r, XORCF_A_r, LDCF_A_r, STCF_A_r,
 	LDC_cr_r, LDC_r_cr, RES_$_r, SET_$_r, CHG_$_r, BIT_$_r, TSET_$_r, MINC1_$_r, MINC2_$_r,
@@ -27,7 +24,7 @@ OPC_REG LD_r_$, PUSH_r, POP_r, CPL_r, NEG_r, MUL_rr_$, MULS_rr_$, DIV_rr_$, DIVS
 	RL_A_r, RR_A_r, SLA_A_r, SRA_A_r, SLL_A_r, SRL_A_r;
 
 // src
-OPC_SRC PUSH_mem, RLD_A_mem, RRD_A_mem, LDI, LDIR, LDD, LDDR, CPI, CPIR, CPD, CPDR, LD_nn_m,
+OPC PUSH_mem, RLD_A_mem, RRD_A_mem, LDI, LDIR, LDD, LDDR, CPI, CPIR, CPD, CPDR, LD_nn_m,
 	LD_R_mem, EX_mem_R, ADD_mem_$, ADC_mem_$, SUB_mem_$, SBC_mem_$, AND_mem_$, XOR_mem_$, OR_mem_$,
 	CP_mem_$, MUL_R_mem, MULS_R_mem, DIV_R_mem, DIVS_R_mem, INC_$3_mem, DEC_$3_mem, RLC_mem, RRC_mem,
 	RL_mem, RR_mem, SLA_mem, SRA_mem, SLL_mem, SRL_mem, ADD_R_mem, ADD_mem_R, ADC_R_mem, ADC_mem_R,
@@ -35,12 +32,12 @@ OPC_SRC PUSH_mem, RLD_A_mem, RRD_A_mem, LDI, LDIR, LDD, LDDR, CPI, CPIR, CPD, CP
 	OR_mem_R, CP_R_mem, CP_mem_R; 
 
 // dst
-OPC_DST LD_m_$, LDW_m_$, POP_mem, POPW_mem, LD_m_nn, LDW_m_nn, LDA_R_mem, ANDCF_A_mem, ORCF_A_mem, 
+OPC LD_m_$, LDW_m_$, POP_mem, POPW_mem, LD_m_nn, LDW_m_nn, LDA_R_mem, ANDCF_A_mem, ORCF_A_mem, 
 	XORCF_A_mem, LDCF_A_mem, STCF_A_mem, LD_mem_R, ANDCF_$3_mem, ORCF_$3_mem, XORCF_$3_mem, LDCF_$3_mem,
 	STCF_$3_mem, TSET_$3_mem, RES_$3_mem, SET_$3_mem, CHG_$3_mem, BIT_$3_mem, JP_cc_mem, CALL_cc_mem, RET_cc;
 
 // Operand tables
 extern OPC* cpu_optable[0xFF];
-extern OPC_REG* cpu_optable_reg[0xFF];
-extern OPC_SRC* cpu_optable_src[0xFF];
-extern OPC_DST* cpu_optable_dst[0xFF];
+extern OPC* cpu_optable_reg[0xFF];
+extern OPC* cpu_optable_src[0xFF];
+extern OPC* cpu_optable_dst[0xFF];
