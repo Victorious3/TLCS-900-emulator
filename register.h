@@ -18,7 +18,7 @@ void cpu_stack_push_b(BYTE value);
 void cpu_stack_push_w(WORD value);
 void cpu_stack_push_dw(DWORD value);
 
-// TODO: big endian compatibility
+// TODO: big endian compatibility (also breaks strict aliasing)
 static inline BYTE getr_b(BYTE* r) {
 	return *r;
 }

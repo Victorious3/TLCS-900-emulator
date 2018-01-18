@@ -4,13 +4,15 @@
 
 typedef void OPC(void);
 
+void cpu_exec_insn(void);
+
 // 1 byte opcodes
 // (NORMAL and MAX are not implemented on the 900L)
 
 OPC NOP, PUSH_SR, POP_SR, HALT, EI_n, RETI, LD_$n_n, PUSH_n, LDW_$n_nn, PUSHW_nn, INCF, DECF, 
 	RET, RETD_dd,RCF, SCF, CCF, ZCF, PUSH_A, POP_A, EX_F_F$, LDF_n,PUSH_F, POP_F,JP_nn, JP_nnn,
 	CALL_nn, CALL_nnn, CALR, LD_R_n, PUSH_RR, LD_RR_nn, PUSH_XRR, LD_XRR_nnnn, POP_RR, POP_XRR, 
-	JR_d, JRL_dd;
+	JR_d, JRL_dd, LDX, SWI;
 
 // reg
 OPC LD_r_$, PUSH_r, POP_r, CPL_r, NEG_r, MUL_rr_$, MULS_rr_$, DIV_rr_$, DIVS_rr_$, LINK_r_dd,
@@ -37,7 +39,7 @@ OPC LD_m_$, LDW_m_$, POP_mem, POPW_mem, LD_m_nn, LDW_m_nn, LDA_R_mem, ANDCF_A_me
 	STCF_$3_mem, TSET_$3_mem, RES_$3_mem, SET_$3_mem, CHG_$3_mem, BIT_$3_mem, JP_cc_mem, CALL_cc_mem, RET_cc;
 
 // Operand tables
-extern OPC* cpu_optable[0xFF];
-extern OPC* cpu_optable_reg[0xFF];
-extern OPC* cpu_optable_src[0xFF];
-extern OPC* cpu_optable_dst[0xFF];
+extern OPC *const cpu_optable[0x100];
+extern DWORD const cpu_optable_reg[0x100];
+extern DWORD const cpu_optable_src[0x100];
+extern DWORD const cpu_optable_dst[0x100];

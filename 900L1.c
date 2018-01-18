@@ -31,7 +31,7 @@ DWORD cpu_getaddr(BYTE address_mode) {
 		// (#24)
 		return cpu_pull_op_w() | (cpu_pull_op_b() << 16);
 	case 3: {
-			int b = cpu_pull_op_b();
+			BYTE b = cpu_pull_op_b();
 			switch (b & 0x2) {
 			case 0:
 				// (r32)
@@ -41,10 +41,15 @@ DWORD cpu_getaddr(BYTE address_mode) {
 				return getr_dw(cpu_getR(b & 0x3C)) + cpu_pull_op_w();
 			default:
 				// (r32+r8)
-				if (b & 0xFC) 
+				b &= 0xFC;
+				if (b == 1)
 					return getr_dw(cpu_getR(cpu_pull_op_b())) + getr_dw(cpu_getR(cpu_pull_op_b()));
 				// (r32+r16)
-				return getr_dw(cpu_getR(cpu_pull_op_b())) + getr_dw(cpu_getR(cpu_pull_op_b()));
+				else if (b == 0)
+					return getr_dw(cpu_getR(cpu_pull_op_b())) + getr_dw(cpu_getR(cpu_pull_op_b()));
+				// LDAR ($ + 4 + d16)
+				else if (b == 2)
+					return cpu_pull_op_w() + CPU_STATE.PC + 1; // +1 for following second opcode
 			}
 		}
 
@@ -70,6 +75,7 @@ DWORD cpu_getaddr(BYTE address_mode) {
 			return addr;
 		}
 	}
+	return 0;
 }
 
 void cpu_init() {
@@ -103,8 +109,7 @@ void cpu_run(void (*interrupt)(void)) {
 	while (true) {
 		if (!CPU_STATE.halt) {
 			// Exectute next instruction
-			BYTE op = cpu_pull_op_b();
-			cpu_optable[op](op);
+			cpu_exec_insn();
 		}
 
 		if (interrupt_counter <= 0) {			

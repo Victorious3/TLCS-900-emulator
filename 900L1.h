@@ -16,6 +16,10 @@ enum OP_SIZE {
 	S_DWORD = 4
 };
 
+enum OP_TABLE {
+	OP_REG, OP_SRC, OP_DST
+};
+
 /// All memory
 struct CPU_STATE {
 	/*  
@@ -119,6 +123,16 @@ struct CPU_STATE {
 
 	// status flags
 	bool halt;
+
+	// Internal execution state,
+	// these get supplied by the run loop and are used by the instructions
+	BYTE opc_1;				// First opcode
+	enum OP_SIZE size;		// Size
+	BYTE* reg;				// Register
+	DWORD addr;				// Memory location
+	BYTE opc_2;				// Second opcode
+
+	DWORD A, B;				// Argument 1, Argument 2
 };
 
 extern struct CPU_STATE CPU_STATE;
